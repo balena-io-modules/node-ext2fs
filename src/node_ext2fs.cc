@@ -7,14 +7,6 @@ extern "C" {
 #include "js_io.h"
 #include "async.h"
 
-// name2handle = map();
-
-// NAN_METHOD(mount) {
-// 	name2handle[name] = { open, close, read, write, flush };
-// 
-// 	ret = ext2fs_open(handle, open_flags, superblock, blocksize, js_io_manager, &fs);
-// }
-
 class MountWorker : public Nan::AsyncWorker {
 	public:
 		MountWorker(Nan::NAN_METHOD_ARGS_TYPE info, Nan::Callback *callback)
@@ -28,15 +20,40 @@ class MountWorker : public Nan::AsyncWorker {
 			int superblock = 0;
 			int blocksize = 0;
 			ext2_filsys fs = NULL;
-			ext2_file_t file;
-			ext2_ino_t ino;
-			char abomination[17];
+			char hex_ptr[sizeof(void*) + 1];
+			unsigned int start, blk;
+			// ext2_file_t file;
+			// ext2_ino_t ino;
 
-			sprintf(abomination, "%x", request_cb);
-			ret = ext2fs_open(abomination, open_flags, superblock, blocksize, &js_io_manager, &fs);
+			sprintf(hex_ptr, "%x", request_cb);
+			ret = ext2fs_open(hex_ptr, open_flags, superblock, blocksize, &js_io_manager, &fs);
 			if (ret) {
-				fprintf(stderr, "%s: failed to open filesystem\n", "testlib");
 				return;
+			}
+
+			ret = ext2fs_read_inode_bitmap(fs);
+			if (ret) {
+				return;
+			}
+
+			ret = ext2fs_read_block_bitmap(fs);
+			if (ret) {
+				return;
+			}
+
+			start = fs->super->s_first_data_block;
+			for (blk = start; blk <= fs->super->s_blocks_count; blk++) {
+				// Check for either the last iteration or a used block
+				if (blk == fs->super->s_blocks_count || ext2fs_test_block_bitmap(fs->block_map, blk)) {
+					// A discard region
+					if (start != blk) {
+						ret = io_channel_discard(fs->io, start, blk - start);
+						if (ret) {
+							return;
+						}
+					}
+					start = blk + 1;
+				}
 			}
 
 			// printf("trying to find inode\n");

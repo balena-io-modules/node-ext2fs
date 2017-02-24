@@ -20,12 +20,12 @@ struct request_state_t {
 
 static void js_request_done(Nan::NAN_METHOD_ARGS_TYPE info, request_state_t* s) {
 	if (info[0]->IsNull()) {
-        s->ret = 0;
-    } else {
-        s->ret = info[0]->IntegerValue();
-    }
+		s->ret = 0;
+	} else {
+		s->ret = info[0]->IntegerValue();
+	}
 
-    uv_sem_post(&s->js_sem);
+	uv_sem_post(&s->js_sem);
 }
 
 static void noop(char *data, void *hint) {}
@@ -34,13 +34,14 @@ static void js_request(request_state_t *s) {
 	HandleScope scope;
 
 	v8::Local<v8::Value> buffer;
-	unsigned int offset = 0, size = 0;
+	unsigned int offset, size;
 
 	auto request_cb = static_cast<Callback*>(s->channel->private_data);
 
+	offset = s->block * s->channel->block_size;
+	size = (s->count < 0) ? -s->count : (s->count * s->channel->block_size);
+
 	if (s->data) {
-		offset = s->block * s->channel->block_size;
-		size = (s->count < 0) ? -s->count : (s->count * s->channel->block_size);
 		// Convert data pointer to a Buffer object pointing to the same memory.
 		// We pass `noop` as the free callback because memory is managed by
 		// libe2fs and we don't want V8 to run free() on it.
@@ -49,14 +50,15 @@ static void js_request(request_state_t *s) {
 		buffer = Null();
 	}
 
-    v8::Local<v8::Value> argv[] = {
-        New<v8::Number>(s->type),
-        New<v8::Number>(offset),
+	v8::Local<v8::Value> argv[] = {
+		New<v8::Number>(s->type),
+		New<v8::Number>(offset),
+		New<v8::Number>(size),
 		buffer,
-        make_callback(js_request_done, s),
-    };
+		make_callback(js_request_done, s),
+	};
 
-	request_cb->Call(4, argv);
+	request_cb->Call(5, argv);
 }
 
 errcode_t js_request_entry(io_channel channel, int type, unsigned long long block, int count, void *data) {
@@ -75,7 +77,7 @@ errcode_t js_request_entry(io_channel channel, int type, unsigned long long bloc
 	return s.ret;
 }
 
-static errcode_t js_open_entry(const char *abomination, int flags, io_channel *channel) {
+static errcode_t js_open_entry(const char *hex_ptr, int flags, io_channel *channel) {
 	io_channel io = NULL;
 
 	io = (io_channel) malloc(sizeof(struct struct_io_channel));
@@ -83,7 +85,7 @@ static errcode_t js_open_entry(const char *abomination, int flags, io_channel *c
 
 	io->magic = EXT2_ET_MAGIC_IO_CHANNEL;
 	io->manager = &js_io_manager;
-	io->private_data = strtoll(abomination, NULL, 16);
+	io->private_data = strtoll(hex_ptr, NULL, 16);
 
 	*channel = io;
 	return js_request_entry(io, 0, 0, 0, NULL);
@@ -130,7 +132,7 @@ static errcode_t js_zeroout_entry(io_channel channel, unsigned long long block, 
 	return js_request_entry(channel, 12, block, count, NULL);
 }
 
-struct struct_io_manager js_io_manager = {    
+struct struct_io_manager js_io_manager = {
 	.magic            =  EXT2_ET_MAGIC_IO_MANAGER,
 	.name             =  "JavaScript IO Manager",
 	.open             =  js_open_entry,
