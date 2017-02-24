@@ -18,7 +18,7 @@ struct request_state_t {
 	uv_sem_t js_sem;
 };
 
-static void js_request_done(Nan::NAN_METHOD_ARGS_TYPE info, request_state_t* s) {
+static void js_request_done(NAN_METHOD_ARGS_TYPE info, request_state_t* s) {
 	if (info[0]->IsNull()) {
 		s->ret = 0;
 	} else {

@@ -7,11 +7,13 @@ extern "C" {
 #include "js_io.h"
 #include "async.h"
 
-class MountWorker : public Nan::AsyncWorker {
+using namespace Nan;
+
+class MountWorker : public AsyncWorker {
 	public:
-		MountWorker(Nan::NAN_METHOD_ARGS_TYPE info, Nan::Callback *callback)
-		: Nan::AsyncWorker(callback) {
-			request_cb = new Nan::Callback(info[0].As<v8::Function>());
+		MountWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
+		: AsyncWorker(callback) {
+			request_cb = new Callback(info[0].As<v8::Function>());
 		}
 		~MountWorker() {}
 
@@ -72,17 +74,17 @@ class MountWorker : public Nan::AsyncWorker {
 		}
 
 		void HandleOKCallback () {
-			Nan::HandleScope scope;
+			HandleScope scope;
 
 			if (ret < 0) {
 				v8::Local<v8::Value> argv[] = {
-					Nan::ErrnoException(-ret)
+					ErrnoException(-ret)
 				};
 				callback->Call(1, argv);
 			} else {
 				v8::Local<v8::Value> argv[] = {
-					Nan::Null(),
-					Nan::New<v8::Number>(ret)
+					Null(),
+					New<v8::Number>(ret)
 				};
 				callback->Call(2, argv);
 			}
@@ -95,14 +97,14 @@ class MountWorker : public Nan::AsyncWorker {
 
 NAN_METHOD(mount) {
 	if (info.Length() != 2) {
-		Nan::ThrowTypeError("Wrong number of arguments");
+		ThrowTypeError("Wrong number of arguments");
 		return;
 	}
 
 	init_async();
 
 	if (info[1]->IsFunction()) {
-		Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
-		Nan::AsyncQueueWorker(new MountWorker(info, callback));
+		Callback *callback = new Callback(info[1].As<v8::Function>());
+		AsyncQueueWorker(new MountWorker(info, callback));
 	}
 }
