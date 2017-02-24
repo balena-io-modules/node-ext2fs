@@ -1,0 +1,17 @@
+{
+  "validations": {
+    "vulnerableDependencies": true,
+    "uncommittedChanges": true,
+    "untrackedFiles": true,
+    "sensitiveData": {
+      "ignore": [
+        "deps/e2fsprogs/**"
+      ]
+    },
+    "branch": "master",
+    "gitTag": true
+  },
+  "confirm": true,
+  "publishTag": "latest",
+  "prePublishScript": "npm test"
+}

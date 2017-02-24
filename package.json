@@ -1,15 +1,23 @@
 {
   "name": "node-e2fsprogs",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "NodeJS native bindings to the libe2fs for cross-platform ext filesystem handling",
+  "author": "Petros Angelatos <petrosagg@resin.io>",
+  "license": "Apache-2.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "configure": "node-gyp configure",
+    "build": "node-gyp build",
+    "test": "mocha",
+    "publish-please": "publish-please",
+    "prepublish": "publish-please guard"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "bindings": "^1.2.1",
     "nan": "^2.5.1"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0",
+    "publish-please": "^2.2.0"
   }
 }
