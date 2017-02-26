@@ -1,4 +1,5 @@
 extern "C" {
+	#include <sys/types.h>
 	#include <ext2fs/ext2fs.h>
 	#include <stdio.h>
 }
@@ -22,12 +23,12 @@ class MountWorker : public AsyncWorker {
 			int superblock = 0;
 			int blocksize = 0;
 			ext2_filsys fs = NULL;
-			char hex_ptr[sizeof(void*) + 1];
+			char hex_ptr[sizeof(void*) * 2 + 3];
 			unsigned int start, blk;
 			// ext2_file_t file;
 			// ext2_ino_t ino;
 
-			sprintf(hex_ptr, "%x", request_cb);
+			sprintf(hex_ptr, "%p", request_cb);
 			ret = ext2fs_open(hex_ptr, open_flags, superblock, blocksize, &js_io_manager, &fs);
 			if (ret) {
 				return;

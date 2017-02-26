@@ -1,7 +1,9 @@
 extern "C" {
+	#include <sys/types.h>
 	#include <ext2fs/ext2fs.h>
 }
 
+#include <stdio.h>
 #include <nan.h>
 #include "js_io.h"
 #include "async.h"
@@ -18,7 +20,8 @@ struct request_state_t {
 	uv_sem_t js_sem;
 };
 
-static void js_request_done(NAN_METHOD_ARGS_TYPE info, request_state_t* s) {
+static void js_request_done(NAN_METHOD_ARGS_TYPE info, void* _s) {
+	auto *s = reinterpret_cast<request_state_t*>(_s);
 	if (info[0]->IsNull()) {
 		s->ret = 0;
 	} else {
@@ -30,11 +33,12 @@ static void js_request_done(NAN_METHOD_ARGS_TYPE info, request_state_t* s) {
 
 static void noop(char *data, void *hint) {}
 
-static void js_request(request_state_t *s) {
+static void js_request(void *_s) {
 	HandleScope scope;
 
 	v8::Local<v8::Value> buffer;
 	unsigned int offset, size;
+	auto s = reinterpret_cast<request_state_t*>(_s);
 
 	auto request_cb = static_cast<Callback*>(s->channel->private_data);
 
@@ -85,13 +89,13 @@ static errcode_t js_open_entry(const char *hex_ptr, int flags, io_channel *chann
 
 	io->magic = EXT2_ET_MAGIC_IO_CHANNEL;
 	io->manager = &js_io_manager;
-	io->private_data = strtoll(hex_ptr, NULL, 16);
+	sscanf(hex_ptr, "%p", &io->private_data);
 
 	*channel = io;
 	return js_request_entry(io, 0, 0, 0, NULL);
 }
 
-static errcode_t js_close_entry(io_channel channel, unsigned long block, int count, void *data) {
+static errcode_t js_close_entry(io_channel channel) {
 	return js_request_entry(channel, 1, 0, 0, NULL);
 }
 
@@ -105,7 +109,7 @@ static errcode_t js_read_blk_entry(io_channel channel, unsigned long block, int 
 }
 
 static errcode_t js_write_blk_entry(io_channel channel, unsigned long block, int count, const void *data) {
-	return js_request_entry(channel, 3, block, count, data);
+	return js_request_entry(channel, 3, block, count, const_cast<void *>(data));
 }
 
 static errcode_t js_flush_entry(io_channel channel) {
@@ -117,7 +121,7 @@ static errcode_t js_read_blk64_entry(io_channel channel, unsigned long long bloc
 }
 
 static errcode_t js_write_blk64_entry(io_channel channel, unsigned long long block, int count, const void *data) {
-	return js_request_entry(channel, 3, block, count, data);
+	return js_request_entry(channel, 3, block, count, const_cast<void*>(data));
 }
 
 static errcode_t js_discard_entry(io_channel channel, unsigned long long block, unsigned long long count) {

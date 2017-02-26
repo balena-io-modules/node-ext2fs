@@ -57,7 +57,7 @@ static NAN_METHOD(callback_wrapper) {
 	}
 	auto data = info.Data()->ToObject();
 
-	void (*fn)(NAN_METHOD_ARGS_TYPE, void *) = data->Get(0).As<v8::External>()->Value();
+	auto fn = reinterpret_cast<void (*)(NAN_METHOD_ARGS_TYPE, void *)>(data->Get(0).As<v8::External>()->Value());
 	auto args = data->Get(1).As<v8::External>()->Value();
 
 	if (fn && args) {
@@ -71,7 +71,7 @@ static NAN_METHOD(callback_wrapper) {
 
 v8::Local<v8::Function> make_callback(void (*fn)(NAN_METHOD_ARGS_TYPE, void *), void *args) {
     auto data = New<v8::Object>();
-	data->Set(0, New<v8::External>(fn));
+	data->Set(0, New<v8::External>(reinterpret_cast<void*>(fn)));
 	data->Set(1, New<v8::External>(args));
 
 	return New<v8::FunctionTemplate>(callback_wrapper, data)->GetFunction();

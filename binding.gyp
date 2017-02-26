@@ -26,6 +26,8 @@
 			},
 		},
 		'include_dirs': [
+			'config/common',
+
 			'deps/e2fsprogs',
 			'deps/e2fsprogs/lib',
 			# platform and arch-specific headers
