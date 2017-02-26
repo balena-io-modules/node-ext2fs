@@ -82,7 +82,6 @@
 				'deps/e2fsprogs/lib/ext2fs/dir_iterate.c',
 				'deps/e2fsprogs/lib/ext2fs/dupfs.c',
 				'deps/e2fsprogs/lib/ext2fs/expanddir.c',
-				'deps/e2fsprogs/lib/ext2fs/ext2_err.c',
 				'deps/e2fsprogs/lib/ext2fs/ext_attr.c',
 				'deps/e2fsprogs/lib/ext2fs/extent.c',
 				'deps/e2fsprogs/lib/ext2fs/fallocate.c',
@@ -134,14 +133,6 @@
 				'deps/e2fsprogs/lib/ext2fs/write_bb_file.c',
 			],
 		},
-		# {
-		# 	'target_name': 'misc',
-		# 	'product_prefix': 'lib',
-		# 	'type': 'static_library',
-		# 	'sources': [
-		# 		'deps/e2fsprogs/misc/create_inode.c',
-		# 	]
-		# },
 		{
 			"target_name": "bindings",
 			"sources": [
