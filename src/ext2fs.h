@@ -4,17 +4,48 @@
 extern "C" {
 #endif
 
-typedef long errcode_t;
+#include <stdint.h>
+
+typedef long     errcode_t;
+typedef uint32_t dgrp_t;
+typedef uint32_t blk_t;
 
 #define EXT2_FLAG_RW 0x01
 #define EXT2_ET_MAGIC_IO_CHANNEL 2133571333L;
 #define EXT2_ET_MAGIC_IO_MANAGER 2133571335L;
 
-typedef void* ext2_filsys;
 typedef void* io_stats;
+typedef void* ext2fs_inode_bitmap;
+typedef void* ext2fs_block_bitmap;
 
+typedef struct struct_ext2_filsys *ext2_filsys;
 typedef struct struct_io_manager *io_manager;
 typedef struct struct_io_channel *io_channel;
+
+struct ext2_super_block {
+	uint32_t	s_inodes_count;		/* Inodes count */
+	uint32_t	s_blocks_count;		/* Blocks count */
+	uint32_t	s_r_blocks_count;	/* Reserved blocks count */
+	uint32_t	s_free_blocks_count;	/* Free blocks count */
+	uint32_t	s_free_inodes_count;	/* Free inodes count */
+	uint32_t	s_first_data_block;	/* First Data Block */
+};
+
+struct struct_ext2_filsys {
+	errcode_t               magic;
+	io_channel              io;
+	int                     flags;
+	char                    *device_name;
+	struct ext2_super_block *super;
+	unsigned int            blocksize;
+	int                     fragsize;
+	dgrp_t                  group_desc_count;
+	unsigned long           desc_blocks;
+	void                    *group_desc;
+	unsigned int            inode_blocks_per_group;
+	ext2fs_inode_bitmap     inode_map;
+	ext2fs_block_bitmap     block_map;
+};
 
 struct struct_io_channel {
 	errcode_t	magic;
@@ -65,9 +96,11 @@ struct struct_io_manager {
 
 errcode_t ext2fs_open(const char *name, int flags, int superblock, unsigned int block_size, io_manager manager, ext2_filsys *ret_fs);
 
-errcode_t ext2fs_read_inode_bitmap(ext2_filsys fs);
-
 errcode_t ext2fs_read_block_bitmap(ext2_filsys fs);
+
+int ext2fs_test_block_bitmap(ext2fs_block_bitmap bitmap, blk_t block);
+
+errcode_t io_channel_discard(io_channel channel, unsigned long long block, unsigned long long count);
 
 #ifdef __cplusplus
 }
