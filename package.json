@@ -1,16 +1,18 @@
 {
-  "name": "node-ext2fs",
+  "name": "ext2fs",
   "version": "0.0.2",
   "description": "NodeJS native bindings to the libext2fs for cross-platform ext filesystem handling",
   "author": "Petros Angelatos <petrosagg@resin.io>",
   "license": "Apache-2.0",
   "main": "index.js",
+  "gypfile": true,
   "scripts": {
     "configure": "node-gyp configure",
     "build": "node-gyp build",
     "test": "mocha",
     "publish-please": "publish-please",
-    "prepublish": "publish-please guard"
+    "prepublish": "publish-please guard",
+    "install": "node-gyp rebuild"
   },
   "dependencies": {
     "bindings": "^1.2.1",
@@ -20,5 +22,22 @@
     "bluebird": "^3.4.7",
     "mocha": "^3.2.0",
     "publish-please": "^2.2.0"
+  },
+  "homepage": "https://github.com/resin-io/node-ext2fs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/resin-io/node-ext2fs.git"
+  },
+  "keywords": [
+    "extfs",
+    "ext",
+    "ext2",
+    "ext3",
+    "ext4",
+    "filesystem",
+    "fs"
+  ],
+  "bugs": {
+    "url": "https://github.com/resin-io/node-ext2fs/issues"
   }
 }
