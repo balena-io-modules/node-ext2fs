@@ -44,6 +44,13 @@ ext2fs.mount(disk, function(err, filesystem) {
 		return;
 	}
 	console.log('Mounted filesystem successfully');
+
+	ext2fs.trim(filesystem, function(err) {
+		if (err) {
+			return;
+		}
+		console.log('TRIMed filesystem');
+	}
 });
 ```
 
