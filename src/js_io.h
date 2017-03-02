@@ -1,1 +1,1 @@
-extern struct struct_io_manager js_io_manager;
+io_manager get_js_io_manager();

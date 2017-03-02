@@ -1,12 +1,10 @@
-extern "C" {
-	#include <sys/types.h>
-	#include <ext2fs/ext2fs.h>
-}
-
 #include <stdio.h>
 #include <nan.h>
-#include "js_io.h"
+
+#include "ext2fs.h"
 #include "async.h"
+
+#include "js_io.h"
 
 using namespace Nan;
 
@@ -88,7 +86,7 @@ static errcode_t js_open_entry(const char *hex_ptr, int flags, io_channel *chann
 	memset(io, 0, sizeof(struct struct_io_channel));
 
 	io->magic = EXT2_ET_MAGIC_IO_CHANNEL;
-	io->manager = &js_io_manager;
+	io->manager = get_js_io_manager();
 	sscanf(hex_ptr, "%p", &io->private_data);
 
 	*channel = io;
@@ -136,21 +134,22 @@ static errcode_t js_zeroout_entry(io_channel channel, unsigned long long block, 
 	return js_request_entry(channel, 12, block, count, NULL);
 }
 
-struct struct_io_manager js_io_manager = {
-	.magic            =  EXT2_ET_MAGIC_IO_MANAGER,
-	.name             =  "JavaScript IO Manager",
-	.open             =  js_open_entry,
-	.close            =  js_close_entry,
-	.set_blksize      =  set_blksize,
-	.read_blk         =  js_read_blk_entry,
-	.write_blk        =  js_write_blk_entry,
-	.flush            =  js_flush_entry,
-	.write_byte       =  NULL,
-	.set_option       =  NULL,
-	.get_stats        =  NULL,
-	.read_blk64       =  js_read_blk64_entry,
-	.write_blk64      =  js_write_blk64_entry,
-	.discard          =  js_discard_entry,
-	.cache_readahead  =  js_cache_readahead_entry,
-	.zeroout          =  js_zeroout_entry,
+struct struct_io_manager js_io_manager;
+
+io_manager get_js_io_manager() {
+	js_io_manager.magic            =  EXT2_ET_MAGIC_IO_MANAGER;
+	js_io_manager.name             =  "JavaScript IO Manager";
+	js_io_manager.open             =  js_open_entry;
+	js_io_manager.close            =  js_close_entry;
+	js_io_manager.set_blksize      =  set_blksize;
+	js_io_manager.read_blk         =  js_read_blk_entry;
+	js_io_manager.write_blk        =  js_write_blk_entry;
+	js_io_manager.flush            =  js_flush_entry;
+	js_io_manager.read_blk64       =  js_read_blk64_entry;
+	js_io_manager.write_blk64      =  js_write_blk64_entry;
+	js_io_manager.discard          =  js_discard_entry;
+	js_io_manager.cache_readahead  =  js_cache_readahead_entry;
+	js_io_manager.zeroout          =  js_zeroout_entry;
+
+	return &js_io_manager;
 };
