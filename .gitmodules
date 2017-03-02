@@ -1,3 +1,4 @@
 [submodule "deps/e2fsprogs"]
+	shallow = true
 	path = deps/e2fsprogs
 	url = https://github.com/tytso/e2fsprogs.git
