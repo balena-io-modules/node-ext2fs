@@ -31,6 +31,22 @@ Simply compile and install `node-ext2fs` using `npm`:
 $ npm install ext2fs
 ```
 
+Example
+-------
+
+```javascript
+const ext2fs = require('ext2fs');
+
+const disk = new ext2fs.disk.FileDisk('/path/to/ext4_filesystem.img');
+
+ext2fs.mount(disk, function(err, filesystem) {
+	if (err) {
+		return;
+	}
+	console.log('Mounted filesystem successfully');
+});
+```
+
 Support
 -------
 
