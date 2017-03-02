@@ -1,6 +1,6 @@
 {
   "name": "node-ext2fs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "NodeJS native bindings to the libext2fs for cross-platform ext filesystem handling",
   "author": "Petros Angelatos <petrosagg@resin.io>",
   "license": "Apache-2.0",
