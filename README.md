@@ -36,8 +36,9 @@ Example
 
 ```javascript
 const ext2fs = require('ext2fs');
+const filedisk = require('resin-file-disk');
 
-const disk = new ext2fs.disk.FileDisk('/path/to/ext4_filesystem.img');
+const disk = new filedisk.FileDisk('/path/to/ext4_filesystem.img', ext2fs.constants.FILE_DISK_MAPPING);
 
 ext2fs.mount(disk, function(err, filesystem) {
 	if (err) {
