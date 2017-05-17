@@ -37,8 +37,10 @@ Example
 ```javascript
 const ext2fs = require('ext2fs');
 const filedisk = require('file-disk');
+const fs = require('fs');
 
-const disk = new filedisk.FileDisk('/path/to/ext4_filesystem.img');
+const fd = fs.openSync('/path/to/ext4_filesystem.img', 'r+');
+const disk = new filedisk.FileDisk(fd);
 
 ext2fs.mount(disk, function(err, filesystem) {
 	if (err) {
@@ -51,8 +53,10 @@ ext2fs.mount(disk, function(err, filesystem) {
 			return;
 		}
 		console.log('TRIMed filesystem');
-	}
+		fs.closeSync(fd);
+	});
 });
+
 ```
 
 Support
