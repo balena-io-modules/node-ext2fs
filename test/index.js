@@ -1,6 +1,6 @@
 const pathModule = require('path');
 const Promise = require('bluebird');
-const filedisk = require('resin-file-disk');
+const filedisk = require('file-disk');
 
 const ext2fs = Promise.promisifyAll(require('..'));
 
