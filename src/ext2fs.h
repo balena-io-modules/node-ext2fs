@@ -95,6 +95,7 @@ struct struct_io_manager {
 };
 
 errcode_t ext2fs_open(const char *name, int flags, int superblock, unsigned int block_size, io_manager manager, ext2_filsys *ret_fs);
+errcode_t ext2fs_close(ext2_filsys fs);
 
 errcode_t ext2fs_read_block_bitmap(ext2_filsys fs);
 
