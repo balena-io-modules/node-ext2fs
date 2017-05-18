@@ -1,3 +1,6 @@
+/*global it describe after*/
+/*eslint no-undef: "error"*/
+
 const pathModule = require('path');
 const Promise = require('bluebird');
 const filedisk = require('file-disk');
@@ -18,7 +21,7 @@ describe('ext2fs', function() {
 				.then(function(filesystem){
 					return ext2fs.umountAsync(filesystem);
 				});
-			})
+			});
 		});
 		it('ext3', function() {
 			return Promise.using(filedisk.openFile(EXT3_PATH, 'r'), function(fd) {
@@ -34,7 +37,7 @@ describe('ext2fs', function() {
 				.then(function(filesystem){
 					return ext2fs.umountAsync(filesystem);
 				});
-			})
+			});
 		});
 	});
 
@@ -48,7 +51,7 @@ describe('ext2fs', function() {
 				.then(function(){
 					return ext2fs.umountAsync(fs);
 				});
-			})
+			});
 		});
 	});
 });
