@@ -54,6 +54,7 @@ ext2fs.mount(disk, function(err, filesystem) {
 		}
 		console.log('TRIMed filesystem');
 		fs.closeSync(fd);
+		ext2fs.close();
 	});
 });
 

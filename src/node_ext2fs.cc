@@ -182,3 +182,7 @@ X_NAN_METHOD(umount, UmountWorker, 2);
 NAN_METHOD(init) {
 	init_async();
 }
+
+NAN_METHOD(close) {
+	close_async();
+}
