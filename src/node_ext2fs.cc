@@ -37,12 +37,8 @@ class TrimWorker : public AsyncWorker {
 	public:
 		TrimWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			auto filesystem = info[0]->ToObject();
-			auto fs_key = New<v8::String>("fs").ToLocalChecked();
-			auto request_cb_key = New<v8::String>("request_cb").ToLocalChecked();
-			fs = reinterpret_cast<ext2_filsys>(filesystem->Get(fs_key).As<v8::External>()->Value());
-			request_cb = reinterpret_cast<Callback*>(
-				filesystem->Get(request_cb_key).As<v8::External>()->Value()
+			fs = reinterpret_cast<ext2_filsys>(
+				info[0]->ToObject().As<v8::External>()->Value()
 			);
 		}
 		~TrimWorker() {}
@@ -89,7 +85,6 @@ class TrimWorker : public AsyncWorker {
 
 	private:
 		errcode_t ret;
-		Callback *request_cb;
 		ext2_filsys fs;
 
 };
@@ -125,16 +120,7 @@ class MountWorker : public AsyncWorker {
 			}
 			// FIXME: when V8 garbage collects this object we should also free
 			// any resources allocated by libext2fs
-			auto filesystem = New<v8::Object>();
-			filesystem->Set(
-				New<v8::String>("fs").ToLocalChecked(),
-				New<v8::External>(fs)
-			);
-			filesystem->Set(
-				New<v8::String>("request_cb").ToLocalChecked(),
-				New<v8::External>(request_cb)
-			);
-			v8::Local<v8::Value> argv[] = {Null(), filesystem};
+			v8::Local<v8::Value> argv[] = {Null(), New<v8::External>(fs)};
 			callback->Call(2, argv);
 		}
 
@@ -150,10 +136,8 @@ class UmountWorker : public AsyncWorker {
 	public:
 		UmountWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			auto filesystem = info[0]->ToObject();
-			auto fs_key = New<v8::String>("fs").ToLocalChecked();
 			fs = reinterpret_cast<ext2_filsys>(
-				filesystem->Get(fs_key).As<v8::External>()->Value()
+				info[0]->ToObject().As<v8::External>()->Value()
 			);
 		}
 		~UmountWorker() {}
