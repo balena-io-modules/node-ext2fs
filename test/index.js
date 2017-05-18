@@ -9,6 +9,8 @@ const EXT3_PATH = pathModule.join(__dirname, 'fixtures/ext3.img');
 const EXT4_PATH = pathModule.join(__dirname, 'fixtures/ext4.img');
 
 describe('ext2fs', function() {
+	after(ext2fs.close);
+
 	describe('mount', function() {
 		it('ext2', function() {
 			return Promise.using(filedisk.openFile(EXT2_PATH, 'r'), function(fd) {
@@ -35,6 +37,7 @@ describe('ext2fs', function() {
 			})
 		});
 	});
+
 	describe('trim', function() {
 		it('ext4', function() {
 			return Promise.using(filedisk.openFile(EXT4_PATH, 'r'), function(fd) {
