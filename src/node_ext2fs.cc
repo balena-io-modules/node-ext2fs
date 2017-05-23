@@ -108,6 +108,9 @@ class MountWorker : public AsyncWorker {
 				get_js_io_manager(),  // manager
 				&fs                   // ret_fs
 			);
+			if (ret) return;
+			ret = ext2fs_read_bitmaps(fs);
+			if (ret) return;
 		}
 
 		void HandleOKCallback () {
@@ -193,10 +196,20 @@ class OpenWorker : public AsyncWorker {
 		void Execute () {
 			// TODO: error handling
 			ext2_ino_t ino = string_to_inode(fs, path);
+			if (!ino) {  // TODO: test o_creat
+				ret = ext2fs_new_inode(
+					fs,
+					EXT2_ROOT_INO,  // TODO extract parent dir from path
+					LINUX_S_IFREG | 0600,  // TODO: mode
+					0,
+					&ino
+				);
+				if (ret) return;
+			}
 			ret = ext2fs_file_open(
 				fs,
 				ino, // inode,
-				0, // flags TODO
+				EXT2_FILE_WRITE | EXT2_FILE_CREATE, // flags TODO
 				&file
 			);
 		}
@@ -297,6 +310,52 @@ class ReadWorker : public AsyncWorker {
 		unsigned int got;
 };
 X_NAN_METHOD(read, ReadWorker, 6);
+
+class WriteWorker : public AsyncWorker {
+	public:
+		WriteWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
+		: AsyncWorker(callback) {
+			file = reinterpret_cast<ext2_file_t>(
+				info[0]->ToObject().As<v8::External>()->Value()
+			);
+			buffer = (char*) node::Buffer::Data(info[1]);
+			offset = info[2]->IntegerValue();  // buffer offset
+			length = info[3]->IntegerValue();
+			position = info[4]->IntegerValue();  // file offset
+		}
+		~WriteWorker() {}
+
+		void Execute () {
+			// TODO: error handling
+			// TODO: use llseek instead of lseek
+			// TODO: loop required if length > file->fs->blocksize ?
+			unsigned int pos; // needed?
+			if (position != -1) {
+				ret = ext2fs_file_lseek(file, position, EXT2_SEEK_SET, &pos);
+			}
+			ret = ext2fs_file_write(file, buffer + offset, length, &written);
+		}
+
+		void HandleOKCallback () {
+			if (ret < 0) {
+				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
+				callback->Call(1, argv);
+				return;
+			}
+			v8::Local<v8::Value> argv[] = {Null(), New<v8::Integer>(written)};
+			callback->Call(2, argv);
+		}
+
+	private:
+		errcode_t ret;
+		ext2_file_t file;
+		char *buffer;
+		unsigned int offset;
+		unsigned int length;
+		unsigned int position;
+		unsigned int written;
+};
+X_NAN_METHOD(write, WriteWorker, 6);
 
 int copy_filename_to_result(
 	struct ext2_dir_entry *dirent,
