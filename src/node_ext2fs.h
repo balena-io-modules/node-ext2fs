@@ -10,3 +10,4 @@ NAN_METHOD(close);
 NAN_METHOD(read);
 NAN_METHOD(fstat);
 NAN_METHOD(readdir);
+NAN_METHOD(write);

@@ -31,6 +31,11 @@ typedef uint32_t __u32;
 #define EXT2_ROOT_INO 2
 #define EXT2_SEEK_SET 0
 
+#define EXT2_FILE_WRITE		0x0001
+#define EXT2_FILE_CREATE	0x0002
+
+#define LINUX_S_IFREG 0100000
+
 typedef void* io_stats;
 typedef void* ext2fs_inode_bitmap;
 typedef void* ext2fs_block_bitmap;
@@ -143,6 +148,13 @@ extern errcode_t ext2fs_file_read(
 	unsigned int *got
 );
 
+extern errcode_t ext2fs_file_write(
+	ext2_file_t file,
+	const void *buf,
+	unsigned int nbytes,
+	unsigned int *written
+);
+
 extern errcode_t ext2fs_file_open(
 	ext2_filsys fs,
 	ext2_ino_t ino,
@@ -156,6 +168,16 @@ extern errcode_t ext2fs_file_lseek(
 	int whence,
 	ext2_off_t *ret_pos
 );
+
+extern errcode_t ext2fs_new_inode(
+	ext2_filsys fs,
+	ext2_ino_t dir,
+	int mode,
+	ext2fs_inode_bitmap map,
+	ext2_ino_t *ret
+);
+
+extern errcode_t ext2fs_read_bitmaps(ext2_filsys fs);
 
 extern errcode_t ext2fs_file_close(ext2_file_t file);
 
