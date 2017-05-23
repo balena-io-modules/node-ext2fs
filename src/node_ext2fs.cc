@@ -298,6 +298,89 @@ class ReadWorker : public AsyncWorker {
 };
 X_NAN_METHOD(read, ReadWorker, 6);
 
+int copy_filename_to_result(
+	struct ext2_dir_entry *dirent,
+	int offset,
+	int blocksize,
+	char *buf,
+	void *priv_data
+) {
+	// TODO: handle errors
+	if ((strcmp(dirent->name, ".") != 0) && (strcmp(dirent->name, "..") != 0)) {
+		auto filenames = static_cast<std::vector<std::string>*>(priv_data);
+		filenames->push_back(dirent->name);
+		return 0;
+	}
+}
+
+class ReadDirWorker : public AsyncWorker {
+	public:
+		ReadDirWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
+		: AsyncWorker(callback) {
+			fs = reinterpret_cast<ext2_filsys>(
+				info[0]->ToObject().As<v8::External>()->Value()
+			);
+			Nan::Utf8String path_(info[1]);
+			int len = strlen(*path_);
+			path = malloc(len + 1);
+			strncpy(path, *path_, len);
+			path[len] = '\0';
+		}
+		~ReadDirWorker() {}
+
+		void Execute () {
+			// TODO: error handling
+			ext2_ino_t ino = string_to_inode(fs, path);
+			ret = ext2fs_file_open(
+				fs,
+				ino, // inode,
+				0, // flags TODO
+				&file
+			);
+			if (ret) return;
+			ret = ext2fs_check_directory(fs, ino);
+			if (ret) return;
+			char *block_buf = malloc(1024);  // TODO: constant?
+			ret = ext2fs_dir_iterate(
+				fs,
+				ino,
+				0,  // flags
+				block_buf,
+				copy_filename_to_result,
+				&filenames
+			);
+			//TODO: free
+		}
+
+		void HandleOKCallback () {
+			if (ret < 0) {
+				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
+				callback->Call(1, argv);
+				return;
+			}
+			v8::Local<v8::Array> result = Nan::New<v8::Array>();
+			for(auto const& filename: filenames) {
+				result->Set(
+					result->Length(),
+					Nan::CopyBuffer(
+						filename.c_str(),
+						filename.length()
+					).ToLocalChecked()
+				);
+			}
+			v8::Local<v8::Value> argv[] = {Null(), result};
+			callback->Call(2, argv);
+		}
+
+	private:
+		errcode_t ret;
+		ext2_filsys fs;
+		char* path;
+		ext2_file_t file;
+		std::vector<std::string> filenames;
+};
+X_NAN_METHOD(readdir, ReadDirWorker, 3);
+
 v8::Local<v8::Value> castUint32(long unsigned int x) {
 	return Nan::New<v8::Uint32>(static_cast<uint32_t>(x));
 }

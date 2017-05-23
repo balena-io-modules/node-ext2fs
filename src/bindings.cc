@@ -10,6 +10,7 @@ NAN_MODULE_INIT(InitAll) {
 	NAN_EXPORT(target, close);
 	NAN_EXPORT(target, read);
 	NAN_EXPORT(target, fstat);
+	NAN_EXPORT(target, readdir);
 }
 
 NODE_MODULE(bindings, InitAll)

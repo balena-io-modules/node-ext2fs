@@ -9,3 +9,4 @@ NAN_METHOD(closeExt);
 NAN_METHOD(close);
 NAN_METHOD(read);
 NAN_METHOD(fstat);
+NAN_METHOD(readdir);
