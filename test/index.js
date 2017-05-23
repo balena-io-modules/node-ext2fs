@@ -64,6 +64,24 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('mount, readdir, umount', function() {
+		testOnAllDisks(function(disk) {
+			return ext2fs.mountAsync(disk)
+			.then(function(fs){
+				fs = Promise.promisifyAll(fs, { multiArgs: true });
+				return fs.readdirAsync('/')
+				.spread(function(filenames) {
+					filenames.sort();
+					assert.deepEqual(
+						filenames,
+						[ '1', '2', '3', '4', '5', 'lost+found' ]
+					);
+					return ext2fs.umountAsync(fs);
+				});
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisks(function(disk) {
 			return ext2fs.mountAsync(disk)

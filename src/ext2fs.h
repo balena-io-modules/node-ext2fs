@@ -97,6 +97,15 @@ struct ext2_inode {
 	} osd2;				/* OS dependent 2 */
 };
 
+#define EXT2_NAME_LEN 255
+
+struct ext2_dir_entry {
+	__u32	inode;			/* Inode number */
+	__u16	rec_len;		/* Directory entry length */
+	__u16	name_len;		/* Name length */
+	char	name[EXT2_NAME_LEN];	/* File name */
+};
+
 struct ext2_file {
 	errcode_t magic;
 	ext2_filsys fs;
@@ -109,6 +118,23 @@ struct ext2_file {
 	char *buf;
 };
 typedef struct ext2_file *ext2_file_t;
+
+extern errcode_t ext2fs_check_directory(ext2_filsys fs, ext2_ino_t ino);
+
+errcode_t ext2fs_dir_iterate(
+	ext2_filsys fs,
+	ext2_ino_t dir,
+	int flags,
+	char *block_buf,
+	int (*func)(
+		struct ext2_dir_entry *dirent,
+		int offset,
+		int blocksize,
+		char *buf,
+		void *priv_data
+	),
+	void *priv_data
+);
 
 extern errcode_t ext2fs_file_read(
 	ext2_file_t file,
