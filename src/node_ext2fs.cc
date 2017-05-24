@@ -33,13 +33,32 @@ extern "C" {
 	}
 }
 
+ext2_filsys get_filesystem(NAN_METHOD_ARGS_TYPE info) {
+	return static_cast<ext2_filsys>(
+		info[0]->ToObject().As<v8::External>()->Value()
+	);
+}
+
+ext2_file_t get_file(NAN_METHOD_ARGS_TYPE info) {
+	return static_cast<ext2_file_t>(
+		info[0]->ToObject().As<v8::External>()->Value()
+	);
+}
+
+char* get_path(NAN_METHOD_ARGS_TYPE info) {
+	Nan::Utf8String path_(info[1]);
+	int len = strlen(*path_);
+	char* path = static_cast<char*>(malloc(len + 1));
+	strncpy(path, *path_, len);
+	path[len] = '\0';
+	return path;
+}
+
 class TrimWorker : public AsyncWorker {
 	public:
 		TrimWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			fs = reinterpret_cast<ext2_filsys>(
-				info[0]->ToObject().As<v8::External>()->Value()
-			);
+			fs = get_filesystem(info);
 		}
 		~TrimWorker() {}
 
@@ -137,9 +156,7 @@ class UmountWorker : public AsyncWorker {
 	public:
 		UmountWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			fs = reinterpret_cast<ext2_filsys>(
-				info[0]->ToObject().As<v8::External>()->Value()
-			);
+			fs = get_filesystem(info);
 		}
 		~UmountWorker() {}
 
@@ -175,43 +192,151 @@ ext2_ino_t string_to_inode(ext2_filsys fs, char *str) {
 	return ino;
 }
 
+ext2_ino_t get_parent_dir_ino(ext2_filsys fs, char* path) {
+	char* last_slash = strrchr(path, (int)'/');
+	if (last_slash == NULL) {
+		return NULL;
+	}
+	unsigned int parent_len = last_slash - path + 1;
+	char* parent_path = malloc(parent_len + 1);
+	strncpy(parent_path, path, parent_len);
+	parent_path[parent_len] = '\0';
+	ext2_ino_t parent_ino = string_to_inode(fs, parent_path);
+	free(parent_path);
+	return parent_ino;
+}
+
+char* get_filename(char* path) {
+	char* last_slash = strrchr(path, (int)'/');
+	if (last_slash == NULL) {
+		return NULL;
+	}
+	char* filename = last_slash + 1;
+	if (strlen(filename) == 0) {
+		return NULL;
+	}
+	return filename;
+}
+
+unsigned int translate_open_flags(unsigned int js_flags) {
+	unsigned int result = 0;
+	if (js_flags & (O_WRONLY | O_RDWR)) {
+		result |= EXT2_FILE_WRITE;
+	}
+	if (js_flags & O_CREAT) {
+		result |= EXT2_FILE_CREATE;
+	}
+//	JS flags:
+//	O_RDONLY
+//	O_WRONLY		EXT2_FILE_WRITE
+//	O_RDWR
+//	O_CREAT			EXT2_FILE_CREATE
+//	O_EXCL
+//	O_NOCTTY
+//	O_TRUNC
+//	O_APPEND
+//	O_DIRECTORY
+//	O_NOATIME
+//	O_NOFOLLOW
+//	O_SYNC
+//	O_SYMLINK
+//	O_DIRECT
+//	O_NONBLOCK
+	return result;
+}
+
 class OpenWorker : public AsyncWorker {
 	public:
 		OpenWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			fs = reinterpret_cast<ext2_filsys>(
-				info[0]->ToObject().As<v8::External>()->Value()
-			);
-			Nan::Utf8String path_(info[1]);
-			int len = strlen(*path_);
-			path = malloc(len + 1);
-			strncpy(path, *path_, len);
-			path[len] = '\0';
-			// TODO args:
-			// * flags
-		  	// * mode
+			fs = get_filesystem(info);
+			path = get_path(info);
+			flags = translate_open_flags(info[2]->IntegerValue());
+			mode = info[3]->IntegerValue();
 		}
 		~OpenWorker() {}
 
 		void Execute () {
+			// TODO flags
 			// TODO: error handling
 			ext2_ino_t ino = string_to_inode(fs, path);
-			if (!ino) {  // TODO: test o_creat
+			if (!ino) {
+				if (!(flags & EXT2_FILE_CREATE)) {
+					ret = -ENOENT;
+					return;
+				}
+				printf("File %s does not exist, creating it.\n", path);
+				ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
+				if (parent_ino == NULL) {
+					ret = -ENOTDIR;
+					return;
+				}
 				ret = ext2fs_new_inode(
 					fs,
-					EXT2_ROOT_INO,  // TODO extract parent dir from path
-					LINUX_S_IFREG | 0600,  // TODO: mode
+					parent_ino,
+					mode,
 					0,
 					&ino
 				);
 				if (ret) return;
+				char* filename = get_filename(path);
+				if (filename == NULL) {
+					// This should never happen.
+					ret = -EISDIR;
+					return;
+				}
+				ret = ext2fs_link(
+					fs,
+					parent_ino,
+					filename,
+					ino,
+					EXT2_FT_REG_FILE
+				);
+				if (ret == EXT2_ET_DIR_NO_SPACE) {
+					ret = ext2fs_expand_dir(fs, parent_ino);
+					if (ret) return
+					ret = ext2fs_link(
+						fs,
+						parent_ino,
+						filename,
+						ino,
+						EXT2_FT_REG_FILE
+					);
+				}
+				if (ret) return;
+				if (ext2fs_test_inode_bitmap2(fs->inode_map, ino)) {
+					printf("Warning: inode already set\n");
+				}
+				ext2fs_inode_alloc_stats2(fs, ino, +1, 0);
+				struct ext2_inode inode;
+				memset(&inode, 0, sizeof(inode));
+				inode.i_mode = (mode & ~LINUX_S_IFMT) | LINUX_S_IFREG;
+				inode.i_atime = inode.i_ctime = inode.i_mtime = time(0);
+				inode.i_links_count = 1;
+				ret = ext2fs_inode_size_set(fs, &inode, 0);  // TODO: udpate size? also on write?
+				if (ret)
+					return;
+				if (ext2fs_has_feature_inline_data(fs->super)) {
+					inode.i_flags |= EXT4_INLINE_DATA_FL;
+				} else if (ext2fs_has_feature_extents(fs->super)) {
+					ext2_extent_handle_t handle;
+					inode.i_flags &= ~EXT4_EXTENTS_FL;
+					ret = ext2fs_extent_open2(fs, ino, &inode, &handle);
+					if (ret)
+						return;
+					ext2fs_extent_free(handle);
+				}
+
+				ret = ext2fs_write_new_inode(fs, ino, &inode);
+				if (ret)
+					return;
+				if (inode.i_flags & EXT4_INLINE_DATA_FL) {
+					ret = ext2fs_inline_data_init(fs, ino);
+					if (ret)
+						return;
+				}
 			}
-			ret = ext2fs_file_open(
-				fs,
-				ino, // inode,
-				EXT2_FILE_WRITE | EXT2_FILE_CREATE, // flags TODO
-				&file
-			);
+			ret = ext2fs_file_open(fs, ino, flags, &file);
 		}
 
 		void HandleOKCallback () {
@@ -229,6 +354,8 @@ class OpenWorker : public AsyncWorker {
 		errcode_t ret;
 		ext2_filsys fs;
 		char* path;
+		unsigned int flags;
+		unsigned int mode;
 		ext2_file_t file;
 };
 X_NAN_METHOD(open, OpenWorker, 5);
@@ -237,9 +364,7 @@ class CloseWorker : public AsyncWorker {
 	public:
 		CloseWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			file = reinterpret_cast<ext2_file_t>(
-				info[0]->ToObject().As<v8::External>()->Value()
-			);
+			file = get_file(info);
 		}
 		~CloseWorker() {}
 
@@ -269,9 +394,7 @@ class ReadWorker : public AsyncWorker {
 	public:
 		ReadWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			file = reinterpret_cast<ext2_file_t>(
-				info[0]->ToObject().As<v8::External>()->Value()
-			);
+			file = get_file(info);
 			buffer = (char*) node::Buffer::Data(info[1]);
 			offset = info[2]->IntegerValue();  // buffer offset
 			length = info[3]->IntegerValue();
@@ -306,7 +429,7 @@ class ReadWorker : public AsyncWorker {
 		char *buffer;
 		unsigned int offset;
 		unsigned int length;
-		unsigned int position;
+		int position;
 		unsigned int got;
 };
 X_NAN_METHOD(read, ReadWorker, 6);
@@ -315,9 +438,7 @@ class WriteWorker : public AsyncWorker {
 	public:
 		WriteWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			file = reinterpret_cast<ext2_file_t>(
-				info[0]->ToObject().As<v8::External>()->Value()
-			);
+			file = get_file(info);
 			buffer = (char*) node::Buffer::Data(info[1]);
 			offset = info[2]->IntegerValue();  // buffer offset
 			length = info[3]->IntegerValue();
@@ -352,7 +473,7 @@ class WriteWorker : public AsyncWorker {
 		char *buffer;
 		unsigned int offset;
 		unsigned int length;
-		unsigned int position;
+		int position;
 		unsigned int written;
 };
 X_NAN_METHOD(write, WriteWorker, 6);
@@ -364,26 +485,23 @@ int copy_filename_to_result(
 	char *buf,
 	void *priv_data
 ) {
-	// TODO: handle errors
-	if ((strcmp(dirent->name, ".") != 0) && (strcmp(dirent->name, "..") != 0)) {
-		auto filenames = static_cast<std::vector<std::string>*>(priv_data);
-		filenames->push_back(dirent->name);
-		return 0;
+	size_t len = ext2fs_dirent_name_len(dirent);
+	if (
+		(strncmp(dirent->name, ".", len) != 0) &&
+		(strncmp(dirent->name, "..", len) != 0)
+	) {
+		auto filenames = static_cast<std::vector<std::string*>*>(priv_data);
+		filenames->push_back(new std::string(dirent->name, len));
 	}
+	return 0;
 }
 
 class ReadDirWorker : public AsyncWorker {
 	public:
 		ReadDirWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
-			fs = reinterpret_cast<ext2_filsys>(
-				info[0]->ToObject().As<v8::External>()->Value()
-			);
-			Nan::Utf8String path_(info[1]);
-			int len = strlen(*path_);
-			path = malloc(len + 1);
-			strncpy(path, *path_, len);
-			path[len] = '\0';
+			fs = get_filesystem(info);
+			path = get_path(info);
 		}
 		~ReadDirWorker() {}
 
@@ -399,7 +517,7 @@ class ReadDirWorker : public AsyncWorker {
 			if (ret) return;
 			ret = ext2fs_check_directory(fs, ino);
 			if (ret) return;
-			char *block_buf = malloc(1024);  // TODO: constant?
+			char *block_buf = static_cast<char*>(malloc(1024));  // TODO: constant?
 			ret = ext2fs_dir_iterate(
 				fs,
 				ino,
@@ -422,8 +540,8 @@ class ReadDirWorker : public AsyncWorker {
 				result->Set(
 					result->Length(),
 					Nan::CopyBuffer(
-						filename.c_str(),
-						filename.length()
+						filename->c_str(),
+						filename->length()
 					).ToLocalChecked()
 				);
 			}
@@ -436,7 +554,7 @@ class ReadDirWorker : public AsyncWorker {
 		ext2_filsys fs;
 		char* path;
 		ext2_file_t file;
-		std::vector<std::string> filenames;
+		std::vector<std::string*> filenames;
 };
 X_NAN_METHOD(readdir, ReadDirWorker, 3);
 
@@ -454,9 +572,7 @@ v8::Local<v8::Value> timespecToMilliseconds(__u32 seconds) {
 
 NAN_METHOD(fstat) {
 	CHECK_ARGS(3)
-	auto file = reinterpret_cast<ext2_file_t>(
-		info[0]->ToObject().As<v8::External>()->Value()
-	);
+	auto file = get_file(info);
 	auto Stats = info[1].As<v8::Function>();
 	auto *callback = new Callback(info[2].As<v8::Function>());
 	v8::Local<v8::Value> statsArgs[] = {
