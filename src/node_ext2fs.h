@@ -11,3 +11,5 @@ NAN_METHOD(read);
 NAN_METHOD(fstat);
 NAN_METHOD(readdir);
 NAN_METHOD(write);
+NAN_METHOD(unlink);
+NAN_METHOD(rmdir);
