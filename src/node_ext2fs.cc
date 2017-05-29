@@ -93,7 +93,7 @@ class TrimWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			HandleScope scope;
 
-			if (ret < 0) {
+			if (ret) {
 				v8::Local<v8::Value> argv[] = {
 					ErrnoException(-ret)
 				};
@@ -107,7 +107,7 @@ class TrimWorker : public AsyncWorker {
 		}
 
 	private:
-		errcode_t ret;
+		errcode_t ret = 0;
 		ext2_filsys fs;
 
 };
@@ -138,7 +138,7 @@ class MountWorker : public AsyncWorker {
 
 		void HandleOKCallback () {
 			HandleScope scope;
-			if (ret < 0) {
+			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
 				callback->Call(1, argv);
 				return;
@@ -150,7 +150,7 @@ class MountWorker : public AsyncWorker {
 		}
 
 	private:
-		errcode_t ret;
+		errcode_t ret = 0;
 		ext2_filsys fs;
 		Callback *request_cb;
 };
@@ -170,7 +170,7 @@ class UmountWorker : public AsyncWorker {
 
 		void HandleOKCallback () {
 			v8::Local<v8::Value> argv[1];
-			if (ret < 0) {
+			if (ret) {
 				argv[0] = ErrnoException(-ret);
 			} else {
 				argv[0] = Null();
@@ -179,7 +179,7 @@ class UmountWorker : public AsyncWorker {
 		}
 
 	private:
-		errcode_t ret;
+		errcode_t ret = 0;
 		ext2_filsys fs;
 };
 X_NAN_METHOD(umount, UmountWorker, 2);
@@ -250,7 +250,7 @@ unsigned int translate_open_flags(unsigned int js_flags) {
 }
 
 errcode_t create_file(ext2_filsys fs, char* path, unsigned int mode, ext2_ino_t* ino) {
-	errcode_t ret;
+	errcode_t ret = 0;
 	ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
 	if (parent_ino == NULL) {
 		return -ENOTDIR;
@@ -328,7 +328,7 @@ class OpenWorker : public AsyncWorker {
 
 		void HandleOKCallback () {
 			HandleScope scope;
-			if (ret < 0) {
+			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
 				callback->Call(1, argv);
 				return;
@@ -338,7 +338,7 @@ class OpenWorker : public AsyncWorker {
 		}
 
 	private:
-		errcode_t ret;
+		errcode_t ret = 0;
 		ext2_filsys fs;
 		char* path;
 		unsigned int flags;
@@ -363,7 +363,7 @@ class CloseWorker : public AsyncWorker {
 
 		void HandleOKCallback () {
 			HandleScope scope;  // TODO: needed ?
-			if (ret < 0) {
+			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
 				callback->Call(1, argv);
 				return;
@@ -373,7 +373,7 @@ class CloseWorker : public AsyncWorker {
 		}
 
 	private:
-		errcode_t ret;
+		errcode_t ret = 0;
 		ext2_file_t file;
 		unsigned int flags;
 };
@@ -427,7 +427,7 @@ class ReadWorker : public AsyncWorker {
 		}
 
 		void HandleOKCallback () {
-			if (ret < 0) {
+			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
 				callback->Call(1, argv);
 				return;
@@ -437,7 +437,7 @@ class ReadWorker : public AsyncWorker {
 		}
 
 	private:
-		errcode_t ret;
+		errcode_t ret = 0;
 		ext2_file_t file;
 		unsigned int flags;
 		char *buffer;
@@ -476,7 +476,7 @@ class WriteWorker : public AsyncWorker {
 		}
 
 		void HandleOKCallback () {
-			if (ret < 0) {
+			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
 				callback->Call(1, argv);
 				return;
@@ -486,7 +486,7 @@ class WriteWorker : public AsyncWorker {
 		}
 
 	private:
-		errcode_t ret;
+		errcode_t ret = 0;
 		ext2_file_t file;
 		unsigned int flags;
 		char *buffer;
@@ -549,7 +549,7 @@ class ReadDirWorker : public AsyncWorker {
 		}
 
 		void HandleOKCallback () {
-			if (ret < 0) {
+			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
 				callback->Call(1, argv);
 				return;
@@ -569,13 +569,86 @@ class ReadDirWorker : public AsyncWorker {
 		}
 
 	private:
-		errcode_t ret;
+		errcode_t ret = 0;
 		ext2_filsys fs;
 		char* path;
 		ext2_file_t file;
 		std::vector<std::string*> filenames;
 };
 X_NAN_METHOD(readdir, ReadDirWorker, 3);
+
+class UnlinkWorker : public AsyncWorker {
+	public:
+		UnlinkWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
+		: AsyncWorker(callback) {
+			fs = get_filesystem(info);
+			path = get_path(info);
+			rmdir = false;
+		}
+		~UnlinkWorker() {}
+
+		void Execute () {
+			if (strlen(path) == 0) {
+				ret = -ENOENT;
+				return;
+			}
+			ext2_ino_t ino = string_to_inode(fs, path);
+			if (ino == 0) {
+				ret = -ENOENT;
+				return;
+			}
+			ret = ext2fs_check_directory(fs, ino);
+			bool is_dir = (ret == 0);
+			if (rmdir) {
+				if (!is_dir) {
+					ret = -ENOTDIR;
+					return;
+				}
+			} else {
+				if (is_dir) {
+					ret = -EISDIR;
+					return;
+				}
+			}
+			// Remove the slash at the beginning if there is one.
+			const char* path_with_no_slash;
+			if (path[0] == '/') {
+				path_with_no_slash = path + 1;
+			} else {
+				path_with_no_slash = path;
+			}
+			ret = ext2fs_unlink(fs, EXT2_ROOT_INO, path_with_no_slash, 0, 0);
+		}
+
+		void HandleOKCallback () {
+			if (ret) {
+				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
+				callback->Call(1, argv);
+				return;
+			}
+			v8::Local<v8::Value> argv[] = {Null()};
+			callback->Call(1, argv);
+		}
+
+	private:
+		errcode_t ret = 0;
+		ext2_filsys fs;
+		char* path;
+
+	protected:
+		bool rmdir;
+};
+X_NAN_METHOD(unlink, UnlinkWorker, 3);
+
+class RmDirWorker : public UnlinkWorker {
+	public:
+		RmDirWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
+		: UnlinkWorker(info, callback) {
+			rmdir = true;
+		}
+		~RmDirWorker() {}
+};
+X_NAN_METHOD(rmdir, RmDirWorker, 3);
 
 v8::Local<v8::Value> castUint32(long unsigned int x) {
 	return Nan::New<v8::Uint32>(static_cast<uint32_t>(x));
