@@ -217,11 +217,11 @@ extern errcode_t ext2fs_file_open(
 	ext2_file_t *ret
 );
 
-extern errcode_t ext2fs_file_lseek(
+extern errcode_t ext2fs_file_llseek(
 	ext2_file_t file,
-	ext2_off_t offset,
+	__u64 offset,
 	int whence,
-	ext2_off_t *ret_pos
+	__u64 *ret_pos
 );
 
 extern errcode_t ext2fs_new_inode(
@@ -271,6 +271,17 @@ extern errcode_t ext2fs_extent_open2(
 	ext2_extent_handle_t *ret_handle
 );
 
+extern errcode_t ext2fs_read_inode(
+	ext2_filsys fs,
+	ext2_ino_t ino,
+	struct ext2_inode * inode
+);
+
+extern errcode_t ext2fs_write_inode(
+	ext2_filsys fs,
+	ext2_ino_t ino,
+	struct ext2_inode * inode
+);
 
 struct ext2_super_block {
 	uint32_t	s_inodes_count;		/* Inodes count */
@@ -497,6 +508,10 @@ EXT4_FEATURE_INCOMPAT_FUNCS(csum_seed,		4, CSUM_SEED)
 EXT4_FEATURE_INCOMPAT_FUNCS(largedir,		4, LARGEDIR)
 EXT4_FEATURE_INCOMPAT_FUNCS(inline_data,	4, INLINE_DATA)
 EXT4_FEATURE_INCOMPAT_FUNCS(encrypt,		4, ENCRYPT)
+
+static void increment_version(struct ext2_inode *inode) {
+	inode->osd1.linux1.l_i_version++;
+}
 
 #ifdef __cplusplus
 }

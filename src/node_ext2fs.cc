@@ -45,6 +45,10 @@ ext2_file_t get_file(NAN_METHOD_ARGS_TYPE info) {
 	);
 }
 
+unsigned int get_flags(NAN_METHOD_ARGS_TYPE info) {
+	return info[1]->IntegerValue();
+}
+
 char* get_path(NAN_METHOD_ARGS_TYPE info) {
 	Nan::Utf8String path_(info[1]);
 	int len = strlen(*path_);
@@ -198,7 +202,7 @@ ext2_ino_t get_parent_dir_ino(ext2_filsys fs, char* path) {
 		return NULL;
 	}
 	unsigned int parent_len = last_slash - path + 1;
-	char* parent_path = malloc(parent_len + 1);
+	char* parent_path = static_cast<char*>(malloc(parent_len + 1));
 	strncpy(parent_path, path, parent_len);
 	parent_path[parent_len] = '\0';
 	ext2_ino_t parent_ino = string_to_inode(fs, parent_path);
@@ -245,6 +249,56 @@ unsigned int translate_open_flags(unsigned int js_flags) {
 	return result;
 }
 
+errcode_t create_file(ext2_filsys fs, char* path, unsigned int mode, ext2_ino_t* ino) {
+	errcode_t ret;
+	ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
+	if (parent_ino == NULL) {
+		return -ENOTDIR;
+	}
+	ret = ext2fs_new_inode(fs, parent_ino, mode, 0, ino);
+	if (ret) return ret;
+	char* filename = get_filename(path);
+	if (filename == NULL) {
+		// This should never happen.
+		return -EISDIR;
+	}
+	ret = ext2fs_link(fs, parent_ino, filename, *ino, EXT2_FT_REG_FILE);
+	if (ret == EXT2_ET_DIR_NO_SPACE) {
+		ret = ext2fs_expand_dir(fs, parent_ino);
+		if (ret) return ret;
+		ret = ext2fs_link(fs, parent_ino, filename, *ino, EXT2_FT_REG_FILE);
+	}
+	if (ret) return ret;
+	if (ext2fs_test_inode_bitmap2(fs->inode_map, *ino)) {
+		printf("Warning: inode already set\n");
+	}
+	ext2fs_inode_alloc_stats2(fs, *ino, +1, 0);
+	struct ext2_inode inode;
+	memset(&inode, 0, sizeof(inode));
+	inode.i_mode = (mode & ~LINUX_S_IFMT) | LINUX_S_IFREG;
+	inode.i_atime = inode.i_ctime = inode.i_mtime = time(0);
+	inode.i_links_count = 1;
+	ret = ext2fs_inode_size_set(fs, &inode, 0);  // TODO: udpate size? also on write?
+	if (ret) return ret;
+	if (ext2fs_has_feature_inline_data(fs->super)) {
+		inode.i_flags |= EXT4_INLINE_DATA_FL;
+	} else if (ext2fs_has_feature_extents(fs->super)) {
+		ext2_extent_handle_t handle;
+		inode.i_flags &= ~EXT4_EXTENTS_FL;
+		ret = ext2fs_extent_open2(fs, *ino, &inode, &handle);
+		if (ret) return ret;
+		ext2fs_extent_free(handle);
+	}
+
+	ret = ext2fs_write_new_inode(fs, *ino, &inode);
+	if (ret) return ret;
+	if (inode.i_flags & EXT4_INLINE_DATA_FL) {
+		ret = ext2fs_inline_data_init(fs, *ino);
+		if (ret) return ret;
+	}
+	return 0;
+}
+
 class OpenWorker : public AsyncWorker {
 	public:
 		OpenWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
@@ -258,83 +312,16 @@ class OpenWorker : public AsyncWorker {
 
 		void Execute () {
 			// TODO flags
-			// TODO: error handling
+			// TODO: free ?
+			// TODO; update access time if file exists and O_NOATIME not in flags
 			ext2_ino_t ino = string_to_inode(fs, path);
 			if (!ino) {
 				if (!(flags & EXT2_FILE_CREATE)) {
 					ret = -ENOENT;
 					return;
 				}
-				printf("File %s does not exist, creating it.\n", path);
-				ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
-				if (parent_ino == NULL) {
-					ret = -ENOTDIR;
-					return;
-				}
-				ret = ext2fs_new_inode(
-					fs,
-					parent_ino,
-					mode,
-					0,
-					&ino
-				);
+				ret = create_file(fs, path, mode, &ino);
 				if (ret) return;
-				char* filename = get_filename(path);
-				if (filename == NULL) {
-					// This should never happen.
-					ret = -EISDIR;
-					return;
-				}
-				ret = ext2fs_link(
-					fs,
-					parent_ino,
-					filename,
-					ino,
-					EXT2_FT_REG_FILE
-				);
-				if (ret == EXT2_ET_DIR_NO_SPACE) {
-					ret = ext2fs_expand_dir(fs, parent_ino);
-					if (ret) return
-					ret = ext2fs_link(
-						fs,
-						parent_ino,
-						filename,
-						ino,
-						EXT2_FT_REG_FILE
-					);
-				}
-				if (ret) return;
-				if (ext2fs_test_inode_bitmap2(fs->inode_map, ino)) {
-					printf("Warning: inode already set\n");
-				}
-				ext2fs_inode_alloc_stats2(fs, ino, +1, 0);
-				struct ext2_inode inode;
-				memset(&inode, 0, sizeof(inode));
-				inode.i_mode = (mode & ~LINUX_S_IFMT) | LINUX_S_IFREG;
-				inode.i_atime = inode.i_ctime = inode.i_mtime = time(0);
-				inode.i_links_count = 1;
-				ret = ext2fs_inode_size_set(fs, &inode, 0);  // TODO: udpate size? also on write?
-				if (ret)
-					return;
-				if (ext2fs_has_feature_inline_data(fs->super)) {
-					inode.i_flags |= EXT4_INLINE_DATA_FL;
-				} else if (ext2fs_has_feature_extents(fs->super)) {
-					ext2_extent_handle_t handle;
-					inode.i_flags &= ~EXT4_EXTENTS_FL;
-					ret = ext2fs_extent_open2(fs, ino, &inode, &handle);
-					if (ret)
-						return;
-					ext2fs_extent_free(handle);
-				}
-
-				ret = ext2fs_write_new_inode(fs, ino, &inode);
-				if (ret)
-					return;
-				if (inode.i_flags & EXT4_INLINE_DATA_FL) {
-					ret = ext2fs_inline_data_init(fs, ino);
-					if (ret)
-						return;
-				}
 			}
 			ret = ext2fs_file_open(fs, ino, flags, &file);
 		}
@@ -365,6 +352,7 @@ class CloseWorker : public AsyncWorker {
 		CloseWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
 			file = get_file(info);
+			flags = get_flags(info);
 		}
 		~CloseWorker() {}
 
@@ -387,30 +375,55 @@ class CloseWorker : public AsyncWorker {
 	private:
 		errcode_t ret;
 		ext2_file_t file;
+		unsigned int flags;
 };
-X_NAN_METHOD(close, CloseWorker, 2);
+X_NAN_METHOD(close, CloseWorker, 3);
+
+static int update_xtime(ext2_file_t file, bool a, bool c, bool m) {
+	errcode_t err;
+	err = ext2fs_read_inode(file->fs, file->ino, &(file->inode));
+	if (err) return err;
+	struct timespec now;
+	clock_gettime(CLOCK_REALTIME, &now);
+	if (a) {
+		file->inode.i_atime = now.tv_sec;
+	}
+	if (c) {
+		file->inode.i_ctime = now.tv_sec;
+	}
+	if (m) {
+		file->inode.i_mtime = now.tv_sec;
+	}
+	increment_version(&(file->inode));
+	err = ext2fs_write_inode(file->fs, file->ino, &(file->inode));
+	if (err) return err;
+	return 0;
+}
 
 class ReadWorker : public AsyncWorker {
 	public:
 		ReadWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
 			file = get_file(info);
-			buffer = (char*) node::Buffer::Data(info[1]);
-			offset = info[2]->IntegerValue();  // buffer offset
-			length = info[3]->IntegerValue();
-			position = info[4]->IntegerValue();  // file offset
+			flags = get_flags(info);
+			buffer = (char*) node::Buffer::Data(info[2]);
+			offset = info[3]->IntegerValue();  // buffer offset
+			length = info[4]->IntegerValue();
+			position = info[5]->IntegerValue();  // file offset
 		}
 		~ReadWorker() {}
 
 		void Execute () {
 			// TODO: error handling
-			// TODO: use llseek instead of lseek
-			// TODO: loop required if length > file->fs->blocksize ?
-			unsigned int pos; // needed?
+			__u64 pos; // needed?
 			if (position != -1) {
-				ret = ext2fs_file_lseek(file, position, EXT2_SEEK_SET, &pos);
+				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, &pos);
 			}
 			ret = ext2fs_file_read(file, buffer + offset, length, &got);
+			if (ret) return;
+			if ((flags & O_NOATIME) == 0) {
+				ret = update_xtime(file, true, false, false);
+			}
 		}
 
 		void HandleOKCallback () {
@@ -426,35 +439,40 @@ class ReadWorker : public AsyncWorker {
 	private:
 		errcode_t ret;
 		ext2_file_t file;
+		unsigned int flags;
 		char *buffer;
 		unsigned int offset;
 		unsigned int length;
 		int position;
 		unsigned int got;
 };
-X_NAN_METHOD(read, ReadWorker, 6);
+X_NAN_METHOD(read, ReadWorker, 7);
 
 class WriteWorker : public AsyncWorker {
 	public:
 		WriteWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
 		: AsyncWorker(callback) {
 			file = get_file(info);
-			buffer = (char*) node::Buffer::Data(info[1]);
-			offset = info[2]->IntegerValue();  // buffer offset
-			length = info[3]->IntegerValue();
-			position = info[4]->IntegerValue();  // file offset
+			flags = get_flags(info);
+			buffer = static_cast<char*>(node::Buffer::Data(info[2]));
+			offset = info[3]->IntegerValue();  // buffer offset
+			length = info[4]->IntegerValue();
+			position = info[5]->IntegerValue();  // file offset
 		}
 		~WriteWorker() {}
 
 		void Execute () {
 			// TODO: error handling
-			// TODO: use llseek instead of lseek
-			// TODO: loop required if length > file->fs->blocksize ?
-			unsigned int pos; // needed?
+			__u64 pos; // needed?
 			if (position != -1) {
-				ret = ext2fs_file_lseek(file, position, EXT2_SEEK_SET, &pos);
+				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, &pos);
+				if (ret) return;
 			}
 			ret = ext2fs_file_write(file, buffer + offset, length, &written);
+			if (ret) return;
+			if ((flags & O_CREAT) != 0) {
+				ret = update_xtime(file, false, true, true);
+			}
 		}
 
 		void HandleOKCallback () {
@@ -470,13 +488,14 @@ class WriteWorker : public AsyncWorker {
 	private:
 		errcode_t ret;
 		ext2_file_t file;
+		unsigned int flags;
 		char *buffer;
 		unsigned int offset;
 		unsigned int length;
 		int position;
 		unsigned int written;
 };
-X_NAN_METHOD(write, WriteWorker, 6);
+X_NAN_METHOD(write, WriteWorker, 7);
 
 int copy_filename_to_result(
 	struct ext2_dir_entry *dirent,
@@ -571,10 +590,11 @@ v8::Local<v8::Value> timespecToMilliseconds(__u32 seconds) {
 }
 
 NAN_METHOD(fstat) {
-	CHECK_ARGS(3)
+	CHECK_ARGS(4)
 	auto file = get_file(info);
-	auto Stats = info[1].As<v8::Function>();
-	auto *callback = new Callback(info[2].As<v8::Function>());
+	auto mode = get_flags(info);
+	auto Stats = info[2].As<v8::Function>();
+	auto *callback = new Callback(info[3].As<v8::Function>());
 	v8::Local<v8::Value> statsArgs[] = {
 		castInt32(0),   // dev
 		castInt32(file->inode.i_mode),
