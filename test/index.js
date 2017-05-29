@@ -8,6 +8,9 @@ const filedisk = require('file-disk');
 
 const ext2fs = Promise.promisifyAll(require('..'));
 
+// Each image contains 6 files named 1, 2, 3, 4, 5, 6 and containing
+// 'one\n', 'two\n', 'three\n', 'four\n', 'five\n', 'six\n' respectively.
+
 const IMAGES = {
 	'ext2': 'ext2.img',
 	'ext3': 'ext3.img',
@@ -59,7 +62,7 @@ describe('ext2fs', function() {
 		testOnAllDisksMount(function(fs) {
 			const buf = Buffer.allocUnsafe(4);
 			return fs.openAsync('/1', 'r')
-			.then(function(fd) {
+			.spread(function(fd) {
 				return fs.readAsync(fd, buf, 0, 4, 0)
 				.spread(function(bytesRead, buf) {
 					assert.strictEqual(bytesRead, 4);
@@ -73,7 +76,7 @@ describe('ext2fs', function() {
 	describe('mount, open, fstat, close, umount', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.openAsync('/2', fs.O_RDONLY | fs.O_NOATIME)
-			.then(function(fd) {
+			.spread(function(fd) {
 				return fs.fstatAsync(fd)
 				.spread(function(stats) {
 					assert.strictEqual(stats.dev, 0);
@@ -102,8 +105,60 @@ describe('ext2fs', function() {
 						(new Date('2017-05-23T18:56:47.000Z')).getTime()
 					);
 					return fs.closeAsync(fd);
+				})
+			});
+		});
+	});
+
+	describe('mount, open, write, fstat, close, umount', function() {
+		testOnAllDisksMount(function(fs) {
+			const buf = Buffer.from('hello');
+			return fs.openAsync('/2', 'w')
+			.spread(function(fd) {
+				return fs.writeAsync(fd, buf, 0, buf.length, 0)
+				.spread(function(bytesWritten, buf) {
+					return fs.fstatAsync(fd);
+				})
+				.spread(function(stats) {
+					// ctime, mtime and birthtime should change
+					const now = Date.now();
+					assert(now - stats.ctime.getTime() < 3000);
+					assert(now - stats.mtime.getTime() < 3000);
+					assert(now - stats.birthtime.getTime() < 3000);
+					return fs.closeAsync(fd);
+				});
+			})
+			.then(function() {
+				return fs.openAsync('/2', 'r')
+				.spread(function(fd) {
+					return fs.readAsync(fd, buf, 0, buf.length, 0)
+					.spread(function(bytesRead, buf) {
+						return fs.fstatAsync(fd)
+					})
+					.spread(function(stats) {
+						assert(Date.now() - stats.atime.getTime() < 1000);
+						return fs.closeAsync(fd);
+					});
 				});
 			});
+		});
+	});
+
+	describe('mount, open, write string, read, close, umount', function() {
+		testOnAllDisksMount(function(fs) {
+			const string = 'hello';
+			return fs.openAsync('/9', 'w')
+			.spread(function(fd) {
+				return fs.writeAsync(fd, string)
+				.spread(function(bytesWritten, s) {
+					assert.strictEqual(bytesWritten, string.length);
+					assert.strictEqual(s, string);
+					return fs.fstatAsync(fd);
+				})
+				.spread(function(stats) {
+					return fs.closeAsync(fd);
+				});
+			})
 		});
 	});
 
@@ -114,7 +169,7 @@ describe('ext2fs', function() {
 			let statsBeforeClose;
 			const buf = Buffer.from(content);
 			return fs.openAsync(path, 'w+', 0o777)
-			.then(function(fd) {
+			.spread(function(fd) {
 				return fs.writeAsync(fd, buf, 0, buf.length, 0)
 				.spread(function(bytesWritten, buf) {
 					assert.strictEqual(bytesWritten, buf.length);
@@ -190,6 +245,31 @@ describe('ext2fs', function() {
 			});
 		});
 	});
+
+	describe('mount, create, write 1M, read 1M, close, umount', function() {
+		testOnAllDisksMount(function(fs) {
+			const size = Math.pow(1024, 2);
+			const buf = Buffer.allocUnsafe(size);
+			buf.fill(1);
+			return fs.openAsync('/8', 'w+')
+			.spread(function(fd) {
+				return fs.writeAsync(fd, buf, 0, size, 0)
+				.spread(function(bytesWritten, buf) {
+					assert.strictEqual(bytesWritten, size);
+					buf.fill(0);
+					return fs.readAsync(fd, buf, 0, size, 0);
+				})
+				.spread(function(bytesRead, buf) {
+					const buf2 = Buffer.allocUnsafe(size);
+					buf2.fill(1);
+					assert.strictEqual(bytesRead, size);
+					assert(buf.equals(buf2));
+					return fs.closeAsync(fd);
+				});
+			});
+		});
+	});
+
 
 	describe('open non existent file for reading', function() {
 		testOnAllDisksMount(function(fs) {
