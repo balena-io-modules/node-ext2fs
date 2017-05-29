@@ -8,8 +8,8 @@ const filedisk = require('file-disk');
 
 const ext2fs = Promise.promisifyAll(require('..'));
 
-// Each image contains 6 files named 1, 2, 3, 4, 5, 6 and containing
-// 'one\n', 'two\n', 'three\n', 'four\n', 'five\n', 'six\n' respectively.
+// Each image contains 6 files named 1, 2, 3, 4, 5 and containing
+// 'one\n', 'two\n', 'three\n', 'four\n', 'five\n' respectively.
 
 const IMAGES = {
 	'ext2': 'ext2.img',
@@ -293,6 +293,91 @@ describe('ext2fs', function() {
 			.catch(function(err) {
 				assert.strictEqual(err.errno, 20);
 				assert.strictEqual(err.code, 'ENOTDIR');
+			});
+		});
+	});
+
+	describe('rmdir', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.rmdirAsync('/lost+found')
+			.then(function() {
+				return fs.readdirAsync('/')
+			})
+			.spread(function(files) {
+				files.sort();
+				assert.deepEqual(files, [ '1', '2', '3', '4', '5' ]);
+			});
+		});
+	});
+
+	describe('rmdir a folder that does not exist', function() {
+		testOnAllDisksMount(function(fs) {
+			let error = null;
+			return fs.rmdirAsync('/no-such-folder')
+			.catch(function(err) {
+				error = err;
+			})
+			.then(function() {
+				assert.strictEqual(error.code, 'ENOENT')
+				assert.strictEqual(error.errno, 2)
+			});
+		});
+	});
+
+	describe('rmdir a file', function() {
+		testOnAllDisksMount(function(fs) {
+			let error = null;
+			return fs.rmdirAsync('/1')
+			.catch(function(err) {
+				error = err;
+			})
+			.then(function() {
+				assert.strictEqual(error.code, 'ENOTDIR');
+				assert.strictEqual(error.errno, 20);
+			});
+		});
+	});
+
+	describe('unlink', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.unlinkAsync('/1')
+			.then(function() {
+				return fs.unlinkAsync(Buffer.from('/2'))
+			})
+			.then(function() {
+				return fs.readdirAsync('/')
+			})
+			.spread(function(files) {
+				files.sort();
+				assert.deepEqual(files, [ '3', '4', '5', 'lost+found' ]);
+			});
+		});
+	});
+
+	describe('unlink a file that does not exist', function() {
+		testOnAllDisksMount(function(fs) {
+			let error = null;
+			return fs.unlinkAsync('/no-such-file')
+			.catch(function(err) {
+				error = err;
+			})
+			.then(function() {
+				assert.strictEqual(error.code, 'ENOENT')
+				assert.strictEqual(error.errno, 2)
+			});
+		});
+	});
+
+	describe('unlink a directory', function() {
+		testOnAllDisksMount(function(fs) {
+			let error = null;
+			return fs.unlinkAsync('/lost+found')
+			.catch(function(err) {
+				error = err;
+			})
+			.then(function() {
+				assert.strictEqual(error.code, 'EISDIR');
+				assert.strictEqual(error.errno, 21);
 			});
 		});
 	});
