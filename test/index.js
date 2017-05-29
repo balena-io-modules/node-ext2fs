@@ -73,9 +73,42 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('mount, stat, umount', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.statAsync('/2')
+			.spread(function(stats) {
+				assert.strictEqual(stats.dev, 0);
+				assert.strictEqual(stats.mode, 33188);
+				assert.strictEqual(stats.nlink, 1);
+				assert.strictEqual(stats.uid, 1000);
+				assert.strictEqual(stats.gid, 1000);
+				assert.strictEqual(stats.rdev, 0);
+				assert.strictEqual(stats.blksize, 1024);
+				assert.strictEqual(stats.size, 4);
+				assert.strictEqual(stats.blocks, 2);
+				assert.strictEqual(
+					stats.atime.getTime(),
+					(new Date('2017-05-23T18:56:45.000Z')).getTime()
+				);
+				assert.strictEqual(
+					stats.mtime.getTime(),
+					(new Date('2017-05-22T13:02:28.000Z')).getTime()
+				);
+				assert.strictEqual(
+					stats.ctime.getTime(),
+					(new Date('2017-05-23T18:56:47.000Z')).getTime()
+				);
+				assert.strictEqual(
+					stats.birthtime.getTime(),
+					(new Date('2017-05-23T18:56:47.000Z')).getTime()
+				);
+			});
+		});
+	});
+
 	describe('mount, open, fstat, close, umount', function() {
 		testOnAllDisksMount(function(fs) {
-			return fs.openAsync('/2', fs.O_RDONLY | fs.O_NOATIME)
+			return fs.openAsync('/2', fs.O_RDONLY | fs.O_NOATIME)  // TODO: check
 			.spread(function(fd) {
 				return fs.fstatAsync(fd)
 				.spread(function(stats) {
