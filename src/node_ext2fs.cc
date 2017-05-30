@@ -538,6 +538,10 @@ class ReadDirWorker : public AsyncWorker {
 		void Execute () {
 			// TODO: error handling
 			ext2_ino_t ino = string_to_inode(fs, path);
+			if (ino == 0) {
+				ret = -ENOENT;
+				return;
+			}
 			ret = ext2fs_file_open(
 				fs,
 				ino, // inode,
