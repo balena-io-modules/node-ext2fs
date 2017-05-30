@@ -529,6 +529,20 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('readdir a folder that does not exist', function() {
+		testOnAllDisksMount(function(fs) {
+			let error = null;
+			return fs.readdirAsync('/no-such-folder')
+			.catch(function(err) {
+				error = err;
+			})
+			.then(function() {
+				assert.strictEqual(error.errno, 2);
+				assert.strictEqual(error.code, 'ENOENT');
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
