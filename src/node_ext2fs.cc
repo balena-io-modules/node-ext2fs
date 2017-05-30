@@ -52,7 +52,7 @@ unsigned int get_flags(NAN_METHOD_ARGS_TYPE info) {
 char* get_path(NAN_METHOD_ARGS_TYPE info) {
 	Nan::Utf8String path_(info[1]);
 	int len = strlen(*path_);
-	char* path = static_cast<char*>(malloc(len + 1));
+	char* path = new char[len + 1];
 	strncpy(path, *path_, len);
 	path[len] = '\0';
 	return path;
@@ -202,7 +202,7 @@ ext2_ino_t get_parent_dir_ino(ext2_filsys fs, char* path) {
 		return NULL;
 	}
 	unsigned int parent_len = last_slash - path + 1;
-	char* parent_path = static_cast<char*>(malloc(parent_len + 1));
+	char* parent_path = new char[parent_len + 1];
 	strncpy(parent_path, path, parent_len);
 	parent_path[parent_len] = '\0';
 	ext2_ino_t parent_ino = string_to_inode(fs, parent_path);
@@ -520,8 +520,8 @@ int copy_filename_to_result(
 		(strncmp(dirent->name, ".", len) != 0) &&
 		(strncmp(dirent->name, "..", len) != 0)
 	) {
-		auto filenames = static_cast<std::vector<std::string*>*>(priv_data);
-		filenames->push_back(new std::string(dirent->name, len));
+		auto filenames = static_cast<std::vector<std::string>*>(priv_data);
+		filenames->push_back(std::string(dirent->name, len));
 	}
 	return 0;
 }
@@ -547,7 +547,7 @@ class ReadDirWorker : public AsyncWorker {
 			if (ret) return;
 			ret = ext2fs_check_directory(fs, ino);
 			if (ret) return;
-			char *block_buf = static_cast<char*>(malloc(1024));  // TODO: constant?
+			char* block_buf = new char[1024];
 			ret = ext2fs_dir_iterate(
 				fs,
 				ino,
@@ -556,6 +556,7 @@ class ReadDirWorker : public AsyncWorker {
 				copy_filename_to_result,
 				&filenames
 			);
+			delete[] block_buf;
 			//TODO: free
 		}
 
@@ -570,8 +571,8 @@ class ReadDirWorker : public AsyncWorker {
 				result->Set(
 					result->Length(),
 					Nan::CopyBuffer(
-						filename->c_str(),
-						filename->length()
+						filename.c_str(),
+						filename.length()
 					).ToLocalChecked()
 				);
 			}
@@ -584,7 +585,7 @@ class ReadDirWorker : public AsyncWorker {
 		ext2_filsys fs;
 		char* path;
 		ext2_file_t file;
-		std::vector<std::string*> filenames;
+		std::vector<std::string> filenames;
 };
 X_NAN_METHOD(readdir, ReadDirWorker, 3);
 
