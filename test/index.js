@@ -451,6 +451,26 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('mkdir specific mode', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.mkdirAsync('/new-folder', 0o467)
+			.then(function() {
+				return fs.readdirAsync('/')
+			})
+			.spread(function(files) {
+				files.sort();
+				assert.deepEqual(
+					files,
+					[ '1', '2', '3', '4', '5', 'lost+found', 'new-folder' ]
+				);
+				return fs.statAsync('/new-folder');
+			})
+			.spread(function(stats) {
+				assert.strictEqual(humanFileMode(fs, stats), 'dr--rw-rwx');
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
