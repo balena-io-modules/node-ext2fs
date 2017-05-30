@@ -650,6 +650,51 @@ class RmDirWorker : public UnlinkWorker {
 };
 X_NAN_METHOD(rmdir, RmDirWorker, 3);
 
+class MkDirWorker : public AsyncWorker {
+	public:
+		MkDirWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
+		: AsyncWorker(callback) {
+			fs = get_filesystem(info);
+			path = get_path(info);
+			mode = info[2]->IntegerValue();
+		}
+		~MkDirWorker() {}
+
+		void Execute () {
+			// TODO: error handling
+			//TODO: free
+			ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
+			if (parent_ino == NULL) {
+				ret = -ENOTDIR;
+				return;
+			}
+			char* filename = get_filename(path);
+			if (filename == NULL) {
+				// This should never happen.
+				ret = -EISDIR;
+				return;
+			}
+			ret = ext2fs_mkdir(fs, parent_ino, 0, filename);
+		}
+
+		void HandleOKCallback () {
+			if (ret) {
+				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
+				callback->Call(1, argv);
+				return;
+			}
+			v8::Local<v8::Value> argv[] = {Null()};
+			callback->Call(1, argv);
+		}
+
+	private:
+		errcode_t ret = 0;
+		ext2_filsys fs;
+		char* path;
+		unsigned int mode;
+};
+X_NAN_METHOD(mkdir, MkDirWorker, 4);
+
 v8::Local<v8::Value> castUint32(long unsigned int x) {
 	return Nan::New<v8::Uint32>(static_cast<uint32_t>(x));
 }
@@ -665,7 +710,7 @@ v8::Local<v8::Value> timespecToMilliseconds(__u32 seconds) {
 NAN_METHOD(fstat) {
 	CHECK_ARGS(4)
 	auto file = get_file(info);
-	auto mode = get_flags(info);
+	auto flags = get_flags(info);
 	auto Stats = info[2].As<v8::Function>();
 	auto *callback = new Callback(info[3].As<v8::Function>());
 	v8::Local<v8::Value> statsArgs[] = {

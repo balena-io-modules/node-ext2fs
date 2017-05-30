@@ -291,6 +291,13 @@ errcode_t ext2fs_unlink(
 	int flags
 );
 
+extern errcode_t ext2fs_mkdir(
+	ext2_filsys fs,
+	ext2_ino_t parent,
+	ext2_ino_t inum,
+	const char *name
+);
+
 struct ext2_super_block {
 	uint32_t	s_inodes_count;		/* Inodes count */
 	uint32_t	s_blocks_count;		/* Blocks count */

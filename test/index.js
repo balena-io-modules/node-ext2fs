@@ -435,6 +435,22 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('mkdir', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.mkdirAsync('/new-folder')
+			.then(function() {
+				return fs.readdirAsync('/')
+			})
+			.spread(function(files) {
+				files.sort();
+				assert.deepEqual(
+					files,
+					[ '1', '2', '3', '4', '5', 'lost+found', 'new-folder' ]
+				);
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
