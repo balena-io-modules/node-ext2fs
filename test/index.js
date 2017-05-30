@@ -415,6 +415,26 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('access', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.accessAsync('/1');
+		});
+	});
+
+	describe('execute access on a file that can not be executed', function() {
+		testOnAllDisksMount(function(fs) {
+			let error = null;
+			return fs.accessAsync('/1', fs.constants.X_OK)
+			.catch(function(err) {
+				error = err;
+			})
+			.then(function() {
+				assert.strictEqual(error.code, 'EACCES');
+				assert.strictEqual(error.errno, 13);
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
