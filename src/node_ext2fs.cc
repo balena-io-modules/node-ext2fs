@@ -415,6 +415,11 @@ class ReadWorker : public AsyncWorker {
 
 		void Execute () {
 			// TODO: error handling
+			if ((flags & O_WRONLY) != 0) {
+				// Don't try to read write only files.
+				ret = -EBADF;
+				return;
+			}
 			__u64 pos; // needed?
 			if (position != -1) {
 				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, &pos);
@@ -463,6 +468,11 @@ class WriteWorker : public AsyncWorker {
 
 		void Execute () {
 			// TODO: error handling
+			if ((flags & (O_WRONLY | O_RDWR)) == 0) {
+				// Don't try to write to readonly files.
+				ret = -EBADF;
+				return;
+			}
 			__u64 pos; // needed?
 			if (position != -1) {
 				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, &pos);
