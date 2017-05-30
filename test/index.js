@@ -471,6 +471,42 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('write in a readonly file', function() {
+		testOnAllDisksMount(function(fs) {
+			let error = null;
+			return fs.openAsync('/1', 'r')
+			.spread(function(fd) {
+				return fs.writeAsync(fd, 'two')
+				.catch(function(err) {
+					error = err;
+				})
+				.then(function() {
+					assert.strictEqual(error.errno, 9);
+					assert.strictEqual(error.code, 'EBADF');
+					return fs.closeAsync(fd);
+				});
+			});
+		});
+	});
+
+	describe('read a writeonly file', function() {
+		testOnAllDisksMount(function(fs) {
+			let error = null;
+			return fs.openAsync('/1', 'w')
+			.spread(function(fd) {
+				return fs.readFileAsync(fd, 'utf8')
+				.catch(function(err) {
+					error = err;
+				})
+				.then(function() {
+					assert.strictEqual(error.errno, 9);
+					assert.strictEqual(error.code, 'EBADF');
+					return fs.closeAsync(fd);
+				});
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
