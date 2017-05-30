@@ -662,7 +662,7 @@ class MkDirWorker : public AsyncWorker {
 
 		void Execute () {
 			// TODO: error handling
-			//TODO: free
+			// TODO: free ?
 			ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
 			if (parent_ino == NULL) {
 				ret = -ENOTDIR;
@@ -674,7 +674,22 @@ class MkDirWorker : public AsyncWorker {
 				ret = -EISDIR;
 				return;
 			}
-			ret = ext2fs_mkdir(fs, parent_ino, 0, filename);
+			ext2_ino_t newdir;
+			ret = ext2fs_new_inode(
+				fs,
+				parent_ino,
+				LINUX_S_IFDIR,
+				NULL,
+				&newdir
+			);
+			if (ret) return;
+			ret = ext2fs_mkdir(fs, parent_ino, newdir, filename);
+			//
+			struct ext2_inode inode;
+			ret = ext2fs_read_inode(fs, newdir, &inode);
+			if (ret) return;
+			inode.i_mode = (mode & 0xFFFF) | LINUX_S_IFDIR;
+			ret = ext2fs_write_inode(fs, newdir, &inode);
 		}
 
 		void HandleOKCallback () {
