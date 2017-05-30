@@ -507,6 +507,28 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('append mode', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.openAsync('/1', 'a+')
+			.spread(function(fd) {
+				const text = 'two\n'
+				return fs.writeAsync(fd, text)
+				.spread(function(bytesWritten, data) {
+					assert.strictEqual(bytesWritten, text.length);
+					assert.strictEqual(data, text);
+					const buffer = Buffer.alloc(16);
+					return fs.readAsync(fd, buffer, 0, buffer.length, 0);
+				})
+				.spread(function(bytesRead, data) {
+					assert.strictEqual(bytesRead, 8);
+					const dataStr = data.slice(0, bytesRead).toString()
+					assert.strictEqual(dataStr, 'one\ntwo\n');
+					return fs.closeAsync(fd);
+				});
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});

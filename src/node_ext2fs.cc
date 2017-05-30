@@ -420,9 +420,8 @@ class ReadWorker : public AsyncWorker {
 				ret = -EBADF;
 				return;
 			}
-			__u64 pos; // needed?
 			if (position != -1) {
-				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, &pos);
+				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, NULL);
 			}
 			ret = ext2fs_file_read(file, buffer + offset, length, &got);
 			if (ret) return;
@@ -473,11 +472,13 @@ class WriteWorker : public AsyncWorker {
 				ret = -EBADF;
 				return;
 			}
-			__u64 pos; // needed?
-			if (position != -1) {
-				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, &pos);
-				if (ret) return;
+			if ((flags & O_APPEND) != 0) {
+				// append mode: seek to the end before each write
+				ret = ext2fs_file_llseek(file, NULL, EXT2_SEEK_END, NULL);
+			} else if (position != -1) {
+				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, NULL);
 			}
+			if (ret) return;
 			ret = ext2fs_file_write(file, buffer + offset, length, &written);
 			if (ret) return;
 			if ((flags & O_CREAT) != 0) {

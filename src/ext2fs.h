@@ -33,6 +33,9 @@ typedef __u64 ext2_off64_t;
 #define EXT2_ET_MAGIC_IO_MANAGER 2133571335L
 #define EXT2_ROOT_INO 2
 #define EXT2_SEEK_SET 0
+#define EXT2_SEEK_CUR 1
+#define EXT2_SEEK_END 2
+
 
 #define EXT2_FILE_WRITE		0x0001
 #define EXT2_FILE_CREATE	0x0002
