@@ -15,6 +15,7 @@ NAN_MODULE_INIT(InitAll) {
 	NAN_EXPORT(target, unlink);
 	NAN_EXPORT(target, rmdir);
 	NAN_EXPORT(target, mkdir);
+	NAN_EXPORT(target, fchmod);
 }
 
 NODE_MODULE(bindings, InitAll)
