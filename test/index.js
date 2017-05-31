@@ -138,18 +138,19 @@ describe('ext2fs', function() {
 						(new Date('2017-05-23T18:56:47.000Z')).getTime()
 					);
 					return fs.closeAsync(fd);
-				})
+				});
 			});
 		});
 	});
 
-	describe('mount, open, write, fstat, close, umount', function() {
+	describe('mount, open, write, fstat, close, open, read, fstat, close, umount', function() {
 		testOnAllDisksMount(function(fs) {
-			const buf = Buffer.from('hello');
+			const string = 'hello';
+			const buf = Buffer.from(string);
 			return fs.openAsync('/2', 'w')
 			.spread(function(fd) {
 				return fs.writeAsync(fd, buf, 0, buf.length, 0)
-				.spread(function(bytesWritten, buf) {
+				.then(function() {
 					return fs.fstatAsync(fd);
 				})
 				.spread(function(stats) {
@@ -166,7 +167,8 @@ describe('ext2fs', function() {
 				.spread(function(fd) {
 					return fs.readAsync(fd, buf, 0, buf.length, 0)
 					.spread(function(bytesRead, buf) {
-						return fs.fstatAsync(fd)
+						assert.strictEqual(buf.toString(), string);
+						return fs.fstatAsync(fd);
 					})
 					.spread(function(stats) {
 						assert(Date.now() - stats.atime.getTime() < 1000);
@@ -180,18 +182,20 @@ describe('ext2fs', function() {
 	describe('mount, open, write string, read, close, umount', function() {
 		testOnAllDisksMount(function(fs) {
 			const string = 'hello';
-			return fs.openAsync('/9', 'w')
+			const buffer = Buffer.alloc(string.length);
+			return fs.openAsync('/9', 'w+')
 			.spread(function(fd) {
 				return fs.writeAsync(fd, string)
 				.spread(function(bytesWritten, s) {
 					assert.strictEqual(bytesWritten, string.length);
 					assert.strictEqual(s, string);
-					return fs.fstatAsync(fd);
+					return fs.readAsync(fd, buffer, 0, buffer.length, 0);
 				})
-				.spread(function(stats) {
+				.spread(function(bytesRead, buf) {
+					assert.strictEqual(buf.toString(), string);
 					return fs.closeAsync(fd);
 				});
-			})
+			});
 		});
 	});
 
@@ -223,8 +227,8 @@ describe('ext2fs', function() {
 					// compare the 2 Stats objects
 					let value, otherValue;
 					for (let key of Object.keys(statsBeforeClose)) {
-						value = statsBeforeClose[key]
-						otherValue = stats[key]
+						value = statsBeforeClose[key];
+						otherValue = stats[key];
 						if (value instanceof Date) {
 							value = value.getTime();
 							otherValue = otherValue.getTime();
@@ -252,7 +256,7 @@ describe('ext2fs', function() {
 					assert.strictEqual(bytesRead, content.length);
 					assert.strictEqual(buf.toString(), content);
 					return fs.closeAsync(fd);
-				})
+				});
 			});
 		});
 	});
@@ -307,7 +311,7 @@ describe('ext2fs', function() {
 	describe('open non existent file for reading', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.openAsync('/7', 'r')
-			.spread(function(fd) {
+			.then(function() {
 				assert(false);
 			})
 			.catch(function(err) {
@@ -320,7 +324,7 @@ describe('ext2fs', function() {
 	describe('create file in non existent folder', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.openAsync('/7/8', 'w')
-			.spread(function(fd) {
+			.then(function() {
 				assert(false);
 			})
 			.catch(function(err) {
@@ -334,7 +338,7 @@ describe('ext2fs', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.rmdirAsync('/lost+found')
 			.then(function() {
-				return fs.readdirAsync('/')
+				return fs.readdirAsync('/');
 			})
 			.spread(function(files) {
 				files.sort();
@@ -351,8 +355,8 @@ describe('ext2fs', function() {
 				error = err;
 			})
 			.then(function() {
-				assert.strictEqual(error.code, 'ENOENT')
-				assert.strictEqual(error.errno, 2)
+				assert.strictEqual(error.code, 'ENOENT');
+				assert.strictEqual(error.errno, 2);
 			});
 		});
 	});
@@ -375,10 +379,10 @@ describe('ext2fs', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.unlinkAsync('/1')
 			.then(function() {
-				return fs.unlinkAsync(Buffer.from('/2'))
+				return fs.unlinkAsync(Buffer.from('/2'));
 			})
 			.then(function() {
-				return fs.readdirAsync('/')
+				return fs.readdirAsync('/');
 			})
 			.spread(function(files) {
 				files.sort();
@@ -395,8 +399,8 @@ describe('ext2fs', function() {
 				error = err;
 			})
 			.then(function() {
-				assert.strictEqual(error.code, 'ENOENT')
-				assert.strictEqual(error.errno, 2)
+				assert.strictEqual(error.code, 'ENOENT');
+				assert.strictEqual(error.errno, 2);
 			});
 		});
 	});
@@ -439,7 +443,7 @@ describe('ext2fs', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.mkdirAsync('/new-folder')
 			.then(function() {
-				return fs.readdirAsync('/')
+				return fs.readdirAsync('/');
 			})
 			.spread(function(files) {
 				files.sort();
@@ -455,7 +459,7 @@ describe('ext2fs', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.mkdirAsync('/new-folder', 0o467)
 			.then(function() {
-				return fs.readdirAsync('/')
+				return fs.readdirAsync('/');
 			})
 			.spread(function(files) {
 				files.sort();
@@ -511,7 +515,7 @@ describe('ext2fs', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.openAsync('/1', 'a+')
 			.spread(function(fd) {
-				const text = 'two\n'
+				const text = 'two\n';
 				return fs.writeAsync(fd, text)
 				.spread(function(bytesWritten, data) {
 					assert.strictEqual(bytesWritten, text.length);
@@ -521,7 +525,7 @@ describe('ext2fs', function() {
 				})
 				.spread(function(bytesRead, data) {
 					assert.strictEqual(bytesRead, 8);
-					const dataStr = data.slice(0, bytesRead).toString()
+					const dataStr = data.slice(0, bytesRead).toString();
 					assert.strictEqual(dataStr, 'one\ntwo\n');
 					return fs.closeAsync(fd);
 				});
