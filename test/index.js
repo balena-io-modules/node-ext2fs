@@ -549,6 +549,93 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('fchmod', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.openAsync('/1', 'r')
+			.spread(function(fd) {
+				return fs.fchmodAsync(fd, 0o777)
+				.then(function() {
+					return fs.fstatAsync(fd);
+				})
+				.spread(function(stats) {
+					assert.strictEqual(humanFileMode(fs, stats), '-rwxrwxrwx');
+					return fs.closeAsync(fd);
+				});
+			});
+		});
+	});
+
+	describe('fchmod2', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.openAsync('/1', 'r')
+			.spread(function(fd) {
+				return fs.fchmodAsync(fd, 0o137)
+				.then(function() {
+					return fs.fstatAsync(fd);
+				})
+				.spread(function(stats) {
+					assert.strictEqual(humanFileMode(fs, stats), '---x-wxrwx');
+					return fs.closeAsync(fd);
+				});
+			});
+		});
+	});
+
+	describe('fchmod a folder', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.openAsync('/lost+found', 'r')
+			.spread(function(fd) {
+				return fs.fchmodAsync(fd, 0o137)
+				.then(function() {
+					return fs.fstatAsync(fd);
+				})
+				.spread(function(stats) {
+					assert.strictEqual(humanFileMode(fs, stats), 'd--x-wxrwx');
+					return fs.closeAsync(fd);
+				});
+			});
+		});
+	});
+
+	describe('chmod', function() {
+		testOnAllDisksMount(function(fs) {
+			const path = '/1';
+			return fs.chmodAsync(path, 0o777)
+			.then(function() {
+				return fs.statAsync(path);
+			})
+			.spread(function(stats) {
+				assert.strictEqual(humanFileMode(fs, stats), '-rwxrwxrwx');
+			});
+		});
+	});
+
+	describe('chmod 2', function() {
+		testOnAllDisksMount(function(fs) {
+			const path = '/1';
+			return fs.chmodAsync(path, 0o137)
+			.then(function() {
+				return fs.statAsync(path);
+			})
+			.spread(function(stats) {
+				assert.strictEqual(humanFileMode(fs, stats), '---x-wxrwx');
+			});
+		});
+	});
+
+	describe('chmod a folder', function() {
+		testOnAllDisksMount(function(fs) {
+			const path = '/lost+found';
+			return fs.chmodAsync(path, 0o137)
+			.then(function() {
+				return fs.statAsync(path);
+			})
+			.spread(function(stats) {
+				assert.strictEqual(humanFileMode(fs, stats), 'd--x-wxrwx');
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});

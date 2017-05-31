@@ -371,7 +371,7 @@ class CloseWorker : public AsyncWorker {
 X_NAN_METHOD(close, CloseWorker, 3);
 
 static int update_xtime(ext2_file_t file, bool a, bool c, bool m) {
-	errcode_t err;
+	errcode_t err = 0;
 	err = ext2fs_read_inode(file->fs, file->ino, &(file->inode));
 	if (err) return err;
 	struct timespec now;
@@ -387,8 +387,7 @@ static int update_xtime(ext2_file_t file, bool a, bool c, bool m) {
 	}
 	increment_version(&(file->inode));
 	err = ext2fs_write_inode(file->fs, file->ino, &(file->inode));
-	if (err) return err;
-	return 0;
+	return err;
 }
 
 class ReadWorker : public AsyncWorker {
@@ -495,6 +494,47 @@ class WriteWorker : public AsyncWorker {
 		unsigned int written;
 };
 X_NAN_METHOD(write, WriteWorker, 7);
+
+static int chmod(ext2_file_t file, unsigned int mode) {
+}
+
+class ChModWorker : public AsyncWorker {
+	public:
+		ChModWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
+		: AsyncWorker(callback) {
+			file = get_file(info);
+			flags = get_flags(info);
+			mode = info[2]->IntegerValue();
+		}
+
+		void Execute () {
+			ret = ext2fs_read_inode(file->fs, file->ino, &(file->inode));
+			if (ret) return;
+			// keep only fmt (file or directory)
+			file->inode.i_mode &= LINUX_S_IFMT;
+			// apply new mode
+			file->inode.i_mode |= (mode & ~LINUX_S_IFMT);
+			increment_version(&(file->inode));
+			ret = ext2fs_write_inode(file->fs, file->ino, &(file->inode));
+		}
+
+		void HandleOKCallback () {
+			if (ret) {
+				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
+				callback->Call(1, argv);
+				return;
+			}
+			v8::Local<v8::Value> argv[] = {Null()};
+			callback->Call(1, argv);
+		}
+
+	private:
+		errcode_t ret = 0;
+		ext2_file_t file;
+		unsigned int flags;
+		unsigned int mode;
+};
+X_NAN_METHOD(fchmod, ChModWorker, 4);
 
 int copy_filename_to_result(
 	struct ext2_dir_entry *dirent,
@@ -682,7 +722,7 @@ class MkDirWorker : public AsyncWorker {
 			struct ext2_inode inode;
 			ret = ext2fs_read_inode(fs, newdir, &inode);
 			if (ret) return;
-			inode.i_mode = (mode & 0xFFFF) | LINUX_S_IFDIR;
+			inode.i_mode = (mode & ~LINUX_S_IFMT) | LINUX_S_IFDIR;
 			ret = ext2fs_write_inode(fs, newdir, &inode);
 		}
 
