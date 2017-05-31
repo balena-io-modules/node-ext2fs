@@ -49,13 +49,9 @@ unsigned int get_flags(NAN_METHOD_ARGS_TYPE info) {
 	return info[1]->IntegerValue();
 }
 
-char* get_path(NAN_METHOD_ARGS_TYPE info) {
+std::string get_path(NAN_METHOD_ARGS_TYPE info) {
 	Nan::Utf8String path_(info[1]);
-	int len = strlen(*path_);
-	char* path = new char[len + 1];
-	strncpy(path, *path_, len);
-	path[len] = '\0';
-	return path;
+	return std::string(static_cast<char*>(*path_));
 }
 
 class TrimWorker : public AsyncWorker {
@@ -64,7 +60,6 @@ class TrimWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			fs = get_filesystem(info);
 		}
-		~TrimWorker() {}
 
 		void Execute () {
 			unsigned int start, blk, count;
@@ -116,9 +111,9 @@ X_NAN_METHOD(trim, TrimWorker, 2);
 class MountWorker : public AsyncWorker {
 	public:
 		MountWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback) : AsyncWorker(callback) {
+			// request_cb and fs will be freed in UmountWorker
 			request_cb = new Callback(info[0].As<v8::Function>());
 		}
-		~MountWorker() {}
 
 		void Execute () {
 			char hex_ptr[sizeof(void*) * 2 + 3];
@@ -162,10 +157,12 @@ class UmountWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			fs = get_filesystem(info);
 		}
-		~UmountWorker() {}
 
 		void Execute () {
-			ret = ext2fs_close(fs);
+			Callback* request_cb;
+			sscanf(fs->device_name, "%p", &request_cb);
+			ret = ext2fs_close_free(&fs);
+			delete request_cb;
 		}
 
 		void HandleOKCallback () {
@@ -206,7 +203,7 @@ ext2_ino_t get_parent_dir_ino(ext2_filsys fs, char* path) {
 	strncpy(parent_path, path, parent_len);
 	parent_path[parent_len] = '\0';
 	ext2_ino_t parent_ino = string_to_inode(fs, parent_path);
-	free(parent_path);
+	delete[] parent_path;
 	return parent_ino;
 }
 
@@ -308,19 +305,16 @@ class OpenWorker : public AsyncWorker {
 			flags = translate_open_flags(info[2]->IntegerValue());
 			mode = info[3]->IntegerValue();
 		}
-		~OpenWorker() {}
 
 		void Execute () {
-			// TODO flags
-			// TODO: free ?
 			// TODO; update access time if file exists and O_NOATIME not in flags
-			ext2_ino_t ino = string_to_inode(fs, path);
+			ext2_ino_t ino = string_to_inode(fs, path.c_str());
 			if (!ino) {
 				if (!(flags & EXT2_FILE_CREATE)) {
 					ret = -ENOENT;
 					return;
 				}
-				ret = create_file(fs, path, mode, &ino);
+				ret = create_file(fs, path.c_str(), mode, &ino);
 				if (ret) return;
 			}
 			ret = ext2fs_file_open(fs, ino, flags, &file);
@@ -340,7 +334,7 @@ class OpenWorker : public AsyncWorker {
 	private:
 		errcode_t ret = 0;
 		ext2_filsys fs;
-		char* path;
+		std::string path;
 		unsigned int flags;
 		unsigned int mode;
 		ext2_file_t file;
@@ -354,15 +348,12 @@ class CloseWorker : public AsyncWorker {
 			file = get_file(info);
 			flags = get_flags(info);
 		}
-		~CloseWorker() {}
 
 		void Execute () {
 			ret = ext2fs_file_close(file);
-			// TODO: free
 		}
 
 		void HandleOKCallback () {
-			HandleScope scope;  // TODO: needed ?
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
 				callback->Call(1, argv);
@@ -411,10 +402,8 @@ class ReadWorker : public AsyncWorker {
 			length = info[4]->IntegerValue();
 			position = info[5]->IntegerValue();  // file offset
 		}
-		~ReadWorker() {}
 
 		void Execute () {
-			// TODO: error handling
 			if ((flags & O_WRONLY) != 0) {
 				// Don't try to read write only files.
 				ret = -EBADF;
@@ -422,6 +411,7 @@ class ReadWorker : public AsyncWorker {
 			}
 			if (position != -1) {
 				ret = ext2fs_file_llseek(file, position, EXT2_SEEK_SET, NULL);
+				if (ret) return;
 			}
 			ret = ext2fs_file_read(file, buffer + offset, length, &got);
 			if (ret) return;
@@ -463,10 +453,8 @@ class WriteWorker : public AsyncWorker {
 			length = info[4]->IntegerValue();
 			position = info[5]->IntegerValue();  // file offset
 		}
-		~WriteWorker() {}
 
 		void Execute () {
-			// TODO: error handling
 			if ((flags & (O_WRONLY | O_RDWR)) == 0) {
 				// Don't try to write to readonly files.
 				ret = -EBADF;
@@ -533,11 +521,9 @@ class ReadDirWorker : public AsyncWorker {
 			fs = get_filesystem(info);
 			path = get_path(info);
 		}
-		~ReadDirWorker() {}
 
 		void Execute () {
-			// TODO: error handling
-			ext2_ino_t ino = string_to_inode(fs, path);
+			ext2_ino_t ino = string_to_inode(fs, path.c_str());
 			if (ino == 0) {
 				ret = -ENOENT;
 				return;
@@ -561,7 +547,6 @@ class ReadDirWorker : public AsyncWorker {
 				&filenames
 			);
 			delete[] block_buf;
-			//TODO: free
 		}
 
 		void HandleOKCallback () {
@@ -587,7 +572,7 @@ class ReadDirWorker : public AsyncWorker {
 	private:
 		errcode_t ret = 0;
 		ext2_filsys fs;
-		char* path;
+		std::string path;
 		ext2_file_t file;
 		std::vector<std::string> filenames;
 };
@@ -601,14 +586,13 @@ class UnlinkWorker : public AsyncWorker {
 			path = get_path(info);
 			rmdir = false;
 		}
-		~UnlinkWorker() {}
 
 		void Execute () {
-			if (strlen(path) == 0) {
+			if (path.length() == 0) {
 				ret = -ENOENT;
 				return;
 			}
-			ext2_ino_t ino = string_to_inode(fs, path);
+			ext2_ino_t ino = string_to_inode(fs, path.c_str());
 			if (ino == 0) {
 				ret = -ENOENT;
 				return;
@@ -627,13 +611,10 @@ class UnlinkWorker : public AsyncWorker {
 				}
 			}
 			// Remove the slash at the beginning if there is one.
-			const char* path_with_no_slash;
-			if (path[0] == '/') {
-				path_with_no_slash = path + 1;
-			} else {
-				path_with_no_slash = path;
+			if (path.at(0) == '/') {
+				path.erase(0, 1);
 			}
-			ret = ext2fs_unlink(fs, EXT2_ROOT_INO, path_with_no_slash, 0, 0);
+			ret = ext2fs_unlink(fs, EXT2_ROOT_INO, path.c_str(), 0, 0);
 		}
 
 		void HandleOKCallback () {
@@ -649,7 +630,7 @@ class UnlinkWorker : public AsyncWorker {
 	private:
 		errcode_t ret = 0;
 		ext2_filsys fs;
-		char* path;
+		std::string path;
 
 	protected:
 		bool rmdir;
@@ -662,7 +643,6 @@ class RmDirWorker : public UnlinkWorker {
 		: UnlinkWorker(info, callback) {
 			rmdir = true;
 		}
-		~RmDirWorker() {}
 };
 X_NAN_METHOD(rmdir, RmDirWorker, 3);
 
@@ -674,17 +654,15 @@ class MkDirWorker : public AsyncWorker {
 			path = get_path(info);
 			mode = info[2]->IntegerValue();
 		}
-		~MkDirWorker() {}
 
 		void Execute () {
-			// TODO: error handling
 			// TODO: free ?
-			ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
+			ext2_ino_t parent_ino = get_parent_dir_ino(fs, path.c_str());
 			if (parent_ino == NULL) {
 				ret = -ENOTDIR;
 				return;
 			}
-			char* filename = get_filename(path);
+			char* filename = get_filename(path.c_str());
 			if (filename == NULL) {
 				// This should never happen.
 				ret = -EISDIR;
@@ -700,7 +678,7 @@ class MkDirWorker : public AsyncWorker {
 			);
 			if (ret) return;
 			ret = ext2fs_mkdir(fs, parent_ino, newdir, filename);
-			//
+			if (ret) return;
 			struct ext2_inode inode;
 			ret = ext2fs_read_inode(fs, newdir, &inode);
 			if (ret) return;
@@ -721,7 +699,7 @@ class MkDirWorker : public AsyncWorker {
 	private:
 		errcode_t ret = 0;
 		ext2_filsys fs;
-		char* path;
+		std::string path;
 		unsigned int mode;
 };
 X_NAN_METHOD(mkdir, MkDirWorker, 4);
@@ -763,6 +741,7 @@ NAN_METHOD(fstat) {
 	auto stats = Nan::NewInstance(Stats, 14, statsArgs).ToLocalChecked();
 	v8::Local<v8::Value> argv[] = {Null(), stats};
 	callback->Call(2, argv);
+	delete callback;
 }
 
 NAN_METHOD(init) {
