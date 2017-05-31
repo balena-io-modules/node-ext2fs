@@ -159,6 +159,7 @@ describe('ext2fs', function() {
 					assert(now - stats.ctime.getTime() < 3000);
 					assert(now - stats.mtime.getTime() < 3000);
 					assert(now - stats.birthtime.getTime() < 3000);
+					assert.strictEqual(stats.size, 5);
 					return fs.closeAsync(fd);
 				});
 			})
@@ -172,6 +173,7 @@ describe('ext2fs', function() {
 					})
 					.spread(function(stats) {
 						assert(Date.now() - stats.atime.getTime() < 1000);
+						assert.strictEqual(stats.size, 5);
 						return fs.closeAsync(fd);
 					});
 				});
