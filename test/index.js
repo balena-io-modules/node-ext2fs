@@ -667,6 +667,19 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('O_EXCL', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.openAsync('/1', 'wx')
+			.then(function() {
+				assert(false);
+			})
+			.catch(function(err) {
+				assert.strictEqual(err.code, 'EEXIST');
+				assert.strictEqual(err.errno, 17);
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
