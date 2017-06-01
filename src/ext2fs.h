@@ -301,6 +301,8 @@ extern errcode_t ext2fs_mkdir(
 	const char *name
 );
 
+extern errcode_t ext2fs_file_set_size2(ext2_file_t file, ext2_off64_t size);
+
 struct ext2_super_block {
 	uint32_t	s_inodes_count;		/* Inodes count */
 	uint32_t	s_blocks_count;		/* Blocks count */
