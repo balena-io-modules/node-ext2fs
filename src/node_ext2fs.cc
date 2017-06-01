@@ -536,6 +536,46 @@ class ChModWorker : public AsyncWorker {
 };
 X_NAN_METHOD(fchmod, ChModWorker, 4);
 
+class ChOwnWorker : public AsyncWorker {
+	public:
+		ChOwnWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
+		: AsyncWorker(callback) {
+			file = get_file(info);
+			flags = get_flags(info);
+			uid = info[2]->IntegerValue();
+			gid = info[3]->IntegerValue();
+		}
+
+		void Execute () {
+			// TODO handle 32 bit {u,g}ids
+			ret = ext2fs_read_inode(file->fs, file->ino, &(file->inode));
+			if (ret) return;
+			// keep only the lower 16 bits
+			file->inode.i_uid = uid & 0xFFFF;
+			file->inode.i_gid = gid & 0xFFFF;
+			increment_version(&(file->inode));
+			ret = ext2fs_write_inode(file->fs, file->ino, &(file->inode));
+		}
+
+		void HandleOKCallback () {
+			if (ret) {
+				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
+				callback->Call(1, argv);
+				return;
+			}
+			v8::Local<v8::Value> argv[] = {Null()};
+			callback->Call(1, argv);
+		}
+
+	private:
+		errcode_t ret = 0;
+		ext2_file_t file;
+		unsigned int flags;
+		unsigned int uid;
+		unsigned int gid;
+};
+X_NAN_METHOD(fchown, ChOwnWorker, 5);
+
 int copy_filename_to_result(
 	struct ext2_dir_entry *dirent,
 	int offset,
@@ -757,6 +797,7 @@ v8::Local<v8::Value> timespecToMilliseconds(__u32 seconds) {
 }
 
 NAN_METHOD(fstat) {
+	// TODO handle 32 bit {u,g}ids
 	CHECK_ARGS(4)
 	auto file = get_file(info);
 	auto flags = get_flags(info);
