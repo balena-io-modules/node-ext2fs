@@ -307,7 +307,7 @@ class OpenWorker : public AsyncWorker {
 		}
 
 		void Execute () {
-			// TODO: O_NOATIME, O_NOFOLLOW, O_SYMLINK
+			// TODO: O_NOFOLLOW, O_SYMLINK
 			ext2_ino_t ino = string_to_inode(fs, path.c_str());
 			if (!ino) {
 				if (!(flags & O_CREAT)) {
