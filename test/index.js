@@ -709,6 +709,34 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('close all fds on umount', function() {
+		testOnAllDisks(function(disk) {
+			return ext2fs.mountAsync(disk)
+			.then(function(fs) {
+				fs = Promise.promisifyAll(fs, { multiArgs: true });
+				return fs.openAsync('/1', 'r')
+				.then(function() {
+					return fs.openAsync('/2', 'r');
+				})
+				.then(function() {
+					return fs.openAsync('/3', 'r');
+				})
+				.then(function() {
+					// this is the function called before umount
+					return fs.closeAllFileDescriptorsAsync();
+				})
+				.then(function() {
+					return fs.openAsync('/1', 'r');
+				})
+				.spread(function(fd) {
+					// if all fds were closed, the next fd should be 0
+					assert.strictEqual(fd, 0);
+					return ext2fs.umountAsync(fs);
+				});
+			});
+		});
+	});
+
 	describe('close bad fd', function() {
 		testOnAllDisksMount(function(fs) {
 			const badFd = 9000;
