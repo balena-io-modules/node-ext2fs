@@ -696,6 +696,65 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('close bad fd', function() {
+		testOnAllDisksMount(function(fs) {
+			const badFd = 9000;
+			const buf = Buffer.alloc(8);
+			let calls = [
+				fs.closeAsync(badFd),
+				fs.fchmodAsync(badFd, 0o777),
+				fs.fchownAsync(badFd, 2000, 3000),
+				fs.fstatAsync(badFd),
+				fs.readAsync(badFd, buf, 0, buf.length, 0),
+				fs.writeAsync(badFd, buf, 0, buf.length, 0)
+			];
+			calls = calls.map(function(p) {
+				return p
+				.then(function() {
+					assert(false);
+				})
+				.catch(function(err) {
+					assert.strictEqual(err.code, 'EBADF');
+					assert.strictEqual(err.errno, 9);
+				});
+			});
+			return Promise.all(calls);
+		});
+	});
+
+	function openFile(fs, path, mode) {
+		return fs.openAsync(path, mode)
+		.disposer(function(fd) {
+			return fs.closeAsync(fd);
+		});
+	}
+
+	describe('MAX_FD', function() {
+		testOnAllDisks(function(disk) {
+			return ext2fs.mountAsync(disk, { MAX_FD: 2 })
+			.then(function(fs) {
+				fs = Promise.promisifyAll(fs, { multiArgs: true });
+				const files = [
+					openFile(fs, '/1', 'r'),
+					openFile(fs, '/2', 'r')
+				];
+				return Promise.using(files, function() {
+					return fs.openAsync('/3', 'r')
+					.then(function() {
+						assert(false);
+					})
+					.catch(function(err) {
+						assert.strictEqual(err.code, 'EMFILE');
+						assert.strictEqual(err.errno, 24);
+					});
+				})
+				.then(function() {
+					return ext2fs.umountAsync(fs);
+				});
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
