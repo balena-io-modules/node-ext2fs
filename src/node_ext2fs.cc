@@ -302,7 +302,7 @@ class OpenWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			fs = get_filesystem(info);
 			path = get_path(info);
-			flags = translate_open_flags(info[2]->IntegerValue());
+			flags = info[2]->IntegerValue();
 			mode = info[3]->IntegerValue();
 		}
 
@@ -310,14 +310,17 @@ class OpenWorker : public AsyncWorker {
 			// TODO; update access time if file exists and O_NOATIME not in flags
 			ext2_ino_t ino = string_to_inode(fs, path.c_str());
 			if (!ino) {
-				if (!(flags & EXT2_FILE_CREATE)) {
+				if (!(flags & O_CREAT)) {
 					ret = -ENOENT;
 					return;
 				}
 				ret = create_file(fs, path.c_str(), mode, &ino);
 				if (ret) return;
+			} else if ((flags & O_EXCL) != 0) {
+				ret = -EEXIST;
+				return;
 			}
-			ret = ext2fs_file_open(fs, ino, flags, &file);
+			ret = ext2fs_file_open(fs, ino, translate_open_flags(flags), &file);
 		}
 
 		void HandleOKCallback () {
