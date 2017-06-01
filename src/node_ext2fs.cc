@@ -321,6 +321,10 @@ class OpenWorker : public AsyncWorker {
 				return;
 			}
 			ret = ext2fs_file_open(fs, ino, translate_open_flags(flags), &file);
+			if (ret) return;
+			if ((flags & O_TRUNC) != 0) {
+				ret = ext2fs_file_set_size2(file, 0);
+			}
 		}
 
 		void HandleOKCallback () {
