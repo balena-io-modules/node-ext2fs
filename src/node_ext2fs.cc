@@ -307,7 +307,7 @@ class OpenWorker : public AsyncWorker {
 		}
 
 		void Execute () {
-			// TODO; update access time if file exists and O_NOATIME not in flags
+			// TODO: O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYMLINK
 			ext2_ino_t ino = string_to_inode(fs, path.c_str());
 			if (!ino) {
 				if (!(flags & O_CREAT)) {
