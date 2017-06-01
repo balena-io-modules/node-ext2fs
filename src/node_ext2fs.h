@@ -15,3 +15,4 @@ NAN_METHOD(unlink);
 NAN_METHOD(rmdir);
 NAN_METHOD(mkdir);
 NAN_METHOD(fchmod);
+NAN_METHOD(fchown);

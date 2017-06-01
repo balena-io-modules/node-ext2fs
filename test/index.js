@@ -636,6 +636,37 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('fchown', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.openAsync('/1', 'r')
+			.spread(function(fd) {
+				return fs.fchownAsync(fd, 2000, 3000)
+				.then(function() {
+					return fs.fstatAsync(fd);
+				})
+				.spread(function(stats) {
+					assert.strictEqual(stats.uid, 2000);
+					assert.strictEqual(stats.gid, 3000);
+					return fs.closeAsync(fd);
+				});
+			});
+		});
+	});
+
+	describe('chown', function() {
+		testOnAllDisksMount(function(fs) {
+			const path = '/1';
+			return fs.chownAsync(path, 2000, 3000)
+			.then(function() {
+				return fs.statAsync(path);
+			})
+			.spread(function(stats) {
+				assert.strictEqual(stats.uid, 2000);
+				assert.strictEqual(stats.gid, 3000);
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
