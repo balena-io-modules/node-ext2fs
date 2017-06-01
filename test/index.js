@@ -680,6 +680,22 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('O_TRUNC', function() {
+		testOnAllDisksMount(function(fs) {
+			const path = '/1';
+			return fs.openAsync(path, 'w')
+			.spread(function(fd) {
+				return fs.closeAsync(fd);
+			})
+			.then(function() {
+				return fs.readFileAsync(path, 'utf8');
+			})
+			.spread(function(content) {
+				assert.strictEqual(content, '');
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
