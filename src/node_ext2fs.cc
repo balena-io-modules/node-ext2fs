@@ -307,7 +307,7 @@ class OpenWorker : public AsyncWorker {
 		}
 
 		void Execute () {
-			// TODO: O_DIRECTORY, O_NOATIME, O_NOFOLLOW, O_SYMLINK
+			// TODO: O_NOATIME, O_NOFOLLOW, O_SYMLINK
 			ext2_ino_t ino = string_to_inode(fs, path.c_str());
 			if (!ino) {
 				if (!(flags & O_CREAT)) {
@@ -316,13 +316,17 @@ class OpenWorker : public AsyncWorker {
 				}
 				ret = create_file(fs, path.c_str(), mode, &ino);
 				if (ret) return;
-			} else if ((flags & O_EXCL) != 0) {
+			} else if (flags & O_EXCL) {
 				ret = -EEXIST;
+				return;
+			}
+			if ((flags & O_DIRECTORY) && ext2fs_check_directory(fs, ino)) {
+				ret = -ENOTDIR;
 				return;
 			}
 			ret = ext2fs_file_open(fs, ino, translate_open_flags(flags), &file);
 			if (ret) return;
-			if ((flags & O_TRUNC) != 0) {
+			if (flags & O_TRUNC) {
 				ret = ext2fs_file_set_size2(file, 0);
 			}
 		}

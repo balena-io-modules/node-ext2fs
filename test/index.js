@@ -108,7 +108,7 @@ describe('ext2fs', function() {
 
 	describe('mount, open, fstat, close, umount', function() {
 		testOnAllDisksMount(function(fs) {
-			return fs.openAsync('/2', fs.O_RDONLY | fs.O_NOATIME)  // TODO: check
+			return fs.openAsync('/2', fs.constants.O_RDONLY | fs.constants.O_NOATIME)  // TODO: check
 			.spread(function(fd) {
 				return fs.fstatAsync(fd)
 				.spread(function(stats) {
@@ -676,6 +676,19 @@ describe('ext2fs', function() {
 			.catch(function(err) {
 				assert.strictEqual(err.code, 'EEXIST');
 				assert.strictEqual(err.errno, 17);
+			});
+		});
+	});
+
+	describe('O_DIRECTORY', function() {
+		testOnAllDisksMount(function(fs) {
+			return fs.openAsync('/1', fs.constants.O_DIRECTORY)
+			.then(function() {
+				assert(false);
+			})
+			.catch(function(err) {
+				assert.strictEqual(err.code, 'ENOTDIR');
+				assert.strictEqual(err.errno, 20);
 			});
 		});
 	});
