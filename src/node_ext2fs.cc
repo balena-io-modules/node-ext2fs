@@ -506,9 +506,6 @@ class WriteWorker : public AsyncWorker {
 };
 X_NAN_METHOD(write, WriteWorker, 7);
 
-static int chmod(ext2_file_t file, unsigned int mode) {
-}
-
 class ChModWorker : public AsyncWorker {
 	public:
 		ChModWorker(NAN_METHOD_ARGS_TYPE info, Callback *callback)
