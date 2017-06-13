@@ -5,6 +5,7 @@ const assert = require('assert');
 const pathModule = require('path');
 const Promise = require('bluebird');
 const filedisk = require('file-disk');
+const stream = require('stream');
 
 const ext2fs = Promise.promisifyAll(require('..'));
 
@@ -48,6 +49,34 @@ function testOnAllDisksMount(fn) {
 			return fn(Promise.promisifyAll(fs, { multiArgs: true }));
 		});
 	});
+}
+
+function readStream(stream) {
+	return new Promise(function(resolve, reject) {
+		const chunks = [];
+		stream.on('error', reject);
+		stream.on('close', function(){
+			resolve(chunks.join(''));
+		});
+		stream.on('data', function(chunk) {
+			chunks.push(chunk);
+		});
+	});
+}
+
+function waitStream(stream) {
+	return new Promise(function(resolve, reject) {
+		stream.on('error', reject);
+		stream.on('close', resolve);
+	});
+}
+
+function createReadableStreamFromString(s) {
+	const readable = new stream.Readable();
+	readable._read = function () {};
+	readable.push(s);
+	readable.push(null);
+	return readable;
 }
 
 describe('ext2fs', function() {
@@ -795,6 +824,32 @@ describe('ext2fs', function() {
 				promises.push(fs.openAsync('/file_number_' + i, 'w'));
 			}
 			return Promise.all(promises);
+		});
+	});
+
+	describe('createReadStream', function() {
+		testOnAllDisksMount(function(fs) {
+			return readStream(fs.createReadStream('/1'))
+			.then(function(contents) {
+				assert.strictEqual(contents, 'one\n');
+			});
+		});
+	});
+
+	describe('createWriteStream', function() {
+		testOnAllDisksMount(function(fs) {
+			const path = '/1';
+			const newContent = 'wololo';
+			const output = fs.createWriteStream(path);
+			const input = createReadableStreamFromString(newContent);
+			input.pipe(output);
+			return waitStream(output)
+			.then(function() {
+				return fs.readFileAsync(path, 'utf8');
+			})
+			.spread(function(contents) {
+				assert.strictEqual(contents, newContent);
+			});
 		});
 	});
 
