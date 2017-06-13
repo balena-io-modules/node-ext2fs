@@ -31,6 +31,16 @@ Simply compile and install `node-ext2fs` using `npm`:
 $ npm install ext2fs
 ```
 
+Usage
+-----
+
+Mount a disk image and use the returned `fs` object.
+The fs returned object behaves like node's `fs` except it doesn't provide any
+xxxxSync method.
+You can also issue `DISCARD` requests using `ext2fs.trim(filesystem, callback)`
+
+See the examples below.
+
 Example
 -------
 
@@ -46,16 +56,70 @@ ext2fs.mount(disk, function(err, filesystem) {
 	if (err) {
 		return;
 	}
+	// filesystem behaves like node's fs
 	console.log('Mounted filesystem successfully');
-
-	ext2fs.trim(filesystem, function(err) {
+	filesystem.readFile('/some_file', 'utf8', function(err, contents) {
 		if (err) {
 			return;
 		}
-		console.log('TRIMed filesystem');
-		fs.closeSync(fd);
-		ext2fs.close();
+		console.log('contents:', contents);
+		ext2fs.trim(filesystem, function(err) {
+			if (err) {
+				return;
+			}
+			console.log('TRIMed filesystem');
+			// don't forget to umount
+			ext2fs.umount(filesystem, function(err) {
+				if (err) {
+					return;
+				}
+				console.log('filesystem umounted')
+				fs.closeSync(fd)
+				// Call ext2fs.close to release allocated resources and let node exit.
+				ext2fs.close()
+			});
+		});
 	});
+});
+
+```
+
+Example using promises
+----------------------
+
+The code above isn't very practical as it requires a new level of indentation
+for each call. Let's simplify it using promises:
+
+```javascript
+const Promise = require('bluebird')
+const ext2fs = Promise.promisifyAll(require('ext2fs'));
+const filedisk = require('file-disk');
+
+Promise.using(filedisk.openFile(path, 'r+'), function(fd) {
+	const disk = new filedisk.FileDisk(fd);
+	return ext2fs.mountAsync(disk)
+	.then(function(filesystem) {
+		filesystem = Promise.promisifyAll(filesystem);
+		// filesystem behaves like node's fs
+		console.log('Mounted filesystem successfully');
+		return filesystem.readFileAsync('/some_file', 'utf8')
+		.then(function(contents) {
+			console.log('contents:', contents);
+			return ext2fs.trimAsync(filesystem);
+		})
+		.then(function() {
+			console.log('TRIMed filesystem');
+			// don't forget to umount
+			return ext2fs.umountAsync(filesystem);
+		})
+		.then(function() {
+			console.log('filesystem umounted');
+		});
+	});
+})
+.then(function() {
+	// Call ext2fs.close to release allocated resources and let node exit.
+	return ext2fs.closeAsync();
 });
 
 ```
