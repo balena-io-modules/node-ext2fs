@@ -774,7 +774,7 @@ describe('ext2fs', function() {
 		testOnAllDisks(function(disk) {
 			return ext2fs.mountAsync(disk, { MAX_FD: 2 })
 			.then(function(fs) {
-				fs = Promise.promisifyAll(fs, { multiArgs: true });
+				fs = Promise.promisifyAll(fs);
 				const files = [
 					openFile(fs, '/1', 'r'),
 					openFile(fs, '/2', 'r')
@@ -793,6 +793,16 @@ describe('ext2fs', function() {
 					return ext2fs.umountAsync(fs);
 				});
 			});
+		});
+	});
+
+	describe('create 20 files at once', function() {
+		testOnAllDisksMount(function(fs) {
+			const promises = [];
+			for (let i=0; i<20; i++) {
+				promises.push(fs.openAsync('/file_number_' + i, 'w'));
+			}
+			return Promise.all(promises);
 		});
 	});
 
