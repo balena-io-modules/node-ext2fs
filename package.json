@@ -16,6 +16,7 @@
     "install": "node-gyp rebuild"
   },
   "dependencies": {
+    "async": "^2.4.1",
     "bindings": "^1.2.1",
     "eslint": "^3.19.0",
     "file-disk": "0.0.10",
