@@ -89,7 +89,8 @@ Example using promises
 
 The code above isn't very practical as it requires a new level of indentation
 for each call. Let's simplify it using promises.
-You can use `ext2fs.mountDisposer` with `Promise.using` so you the filesystem is
+
+You can use `ext2fs.mountDisposer` with `Promise.using` so the filesystem is
 umounted automatically when you're done using it.
 
 ```javascript
