@@ -44,13 +44,8 @@ function testOnAllDisks(fn) {
 
 function testOnAllDisksMount(fn) {
 	return testOnAllDisks(function(disk) {
-		return ext2fs.mountAsync(disk)
-		.then(function(fs) {
-			fs = Promise.promisifyAll(fs, { multiArgs: true });
-			return fn(fs)
-			.then(function() {
-				return ext2fs.umountAsync(fs);
-			});
+		return Promise.using(ext2fs.mountDisposer(disk), function(fs) {
+			return fn(Promise.promisifyAll(fs, { multiArgs: true }));
 		});
 	});
 }
@@ -772,8 +767,8 @@ describe('ext2fs', function() {
 
 	describe('MAX_FD', function() {
 		testOnAllDisks(function(disk) {
-			return ext2fs.mountAsync(disk, { MAX_FD: 2 })
-			.then(function(fs) {
+			const disposer = ext2fs.mountDisposer(disk, { MAX_FD: 2 });
+			return Promise.using(disposer, function(fs) {
 				fs = Promise.promisifyAll(fs);
 				const files = [
 					openFile(fs, '/1', 'r'),
@@ -788,9 +783,6 @@ describe('ext2fs', function() {
 						assert.strictEqual(err.code, 'EMFILE');
 						assert.strictEqual(err.errno, 24);
 					});
-				})
-				.then(function() {
-					return ext2fs.umountAsync(fs);
 				});
 			});
 		});
