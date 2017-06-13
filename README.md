@@ -88,32 +88,30 @@ Example using promises
 ----------------------
 
 The code above isn't very practical as it requires a new level of indentation
-for each call. Let's simplify it using promises:
+for each call. Let's simplify it using promises.
+You can use `ext2fs.mountDisposer` with `Promise.using` so you the filesystem is
+umounted automatically when you're done using it.
 
 ```javascript
 const Promise = require('bluebird')
 const ext2fs = Promise.promisifyAll(require('ext2fs'));
 const filedisk = require('file-disk');
 
+const path = 'test/fixtures/ext2.img';
+
 Promise.using(filedisk.openFile(path, 'r+'), function(fd) {
 	const disk = new filedisk.FileDisk(fd);
-	return ext2fs.mountAsync(disk)
-	.then(function(filesystem) {
+	return Promise.using(ext2fs.mountDisposer(disk), function(filesystem) {
 		filesystem = Promise.promisifyAll(filesystem);
 		// filesystem behaves like node's fs
 		console.log('Mounted filesystem successfully');
-		return filesystem.readFileAsync('/some_file', 'utf8')
+		return filesystem.readFileAsync('/1', 'utf8')
 		.then(function(contents) {
 			console.log('contents:', contents);
 			return ext2fs.trimAsync(filesystem);
 		})
 		.then(function() {
 			console.log('TRIMed filesystem');
-			// don't forget to umount
-			return ext2fs.umountAsync(filesystem);
-		})
-		.then(function() {
-			console.log('filesystem umounted');
 		});
 	});
 })
