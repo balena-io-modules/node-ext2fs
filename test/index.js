@@ -108,7 +108,7 @@ describe('ext2fs', function() {
 
 	describe('mount, open, fstat, close, umount', function() {
 		testOnAllDisksMount(function(fs) {
-			return fs.openAsync('/2', fs.constants.O_RDONLY | fs.constants.O_NOATIME)  // TODO: check
+			return fs.openAsync('/2', fs.constants.O_RDONLY | fs.constants.O_NOATIME)
 			.spread(function(fd) {
 				return fs.fstatAsync(fd)
 				.spread(function(stats) {
