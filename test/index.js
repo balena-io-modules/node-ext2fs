@@ -8,7 +8,7 @@ const filedisk = require('file-disk');
 
 const ext2fs = Promise.promisifyAll(require('..'));
 
-// Each image contains 6 files named 1, 2, 3, 4, 5 and containing
+// Each image contains 5 files named 1, 2, 3, 4, 5 and containing
 // 'one\n', 'two\n', 'three\n', 'four\n', 'five\n' respectively.
 
 const IMAGES = {
