@@ -35,6 +35,7 @@ function humanFileMode(fs, stats) {
 function testOnAllDisks(fn) {
 	return Object.keys(IMAGES).forEach(function(name) {
 		it(name, function(){
+			this.timeout(5000);
 			const path = pathModule.join(__dirname, 'fixtures', IMAGES[name]);
 			return Promise.using(filedisk.openFile(path, 'r'), function(fd) {
 				return fn(new filedisk.FileDisk(fd, true, true));
