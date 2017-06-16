@@ -1,4 +1,4 @@
-/*global it describe after*/
+/*global it describe*/
 /*eslint no-undef: "error"*/
 
 const assert = require('assert');
@@ -81,8 +81,6 @@ function createReadableStreamFromString(s) {
 }
 
 describe('ext2fs', function() {
-	after(ext2fs.close);
-
 	describe('mount, open, read, close, umount', function() {
 		testOnAllDisksMount(function(fs) {
 			const buf = Buffer.allocUnsafe(4);
