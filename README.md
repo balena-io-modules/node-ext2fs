@@ -75,8 +75,6 @@ ext2fs.mount(disk, function(err, filesystem) {
 				}
 				console.log('filesystem umounted')
 				fs.closeSync(fd)
-				// Call ext2fs.close to release allocated resources and let node exit.
-				ext2fs.close()
 			});
 		});
 	});
@@ -116,10 +114,6 @@ Promise.using(filedisk.openFile(path, 'r+'), function(fd) {
 		});
 	});
 })
-.then(function() {
-	// Call ext2fs.close to release allocated resources and let node exit.
-	return ext2fs.closeAsync();
-});
 
 ```
 
