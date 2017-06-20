@@ -852,6 +852,21 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe('writeFile and readFile with no slash at the beginning', function() {
+		const filename = 'config.txt';
+		const content = 'content\n';
+		const encoding = 'utf8';
+		testOnAllDisksMount(function(fs) {
+			return fs.writeFileAsync(filename, content, encoding)
+			.then(function() {
+				return fs.readFileAsync(filename, encoding);
+			})
+			.spread(function(data) {
+				assert.strictEqual(data, content);
+			});
+		});
+	});
+
 	describe('trim', function() {
 		testOnAllDisksMount(ext2fs.trimAsync);
 	});
