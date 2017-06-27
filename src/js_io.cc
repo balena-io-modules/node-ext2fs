@@ -23,7 +23,7 @@ static void js_request_done(NAN_METHOD_ARGS_TYPE info, void* _s) {
 	if (info[0]->IsNull()) {
 		s->ret = 0;
 	} else {
-		s->ret = info[0]->IntegerValue();
+		s->ret = static_cast<errcode_t>(info[0]->IntegerValue());
 	}
 
 	uv_sem_post(&s->js_sem);
@@ -40,7 +40,7 @@ static void js_request(void *_s) {
 
 	auto request_cb = static_cast<Callback*>(s->channel->private_data);
 
-	offset = s->block * s->channel->block_size;
+	offset = static_cast<unsigned int>(s->block * s->channel->block_size);
 	size = (s->count < 0) ? -s->count : (s->count * s->channel->block_size);
 
 	if (s->data) {
@@ -123,15 +123,15 @@ static errcode_t js_write_blk64_entry(io_channel channel, unsigned long long blo
 }
 
 static errcode_t js_discard_entry(io_channel channel, unsigned long long block, unsigned long long count) {
-	return js_request_entry(channel, 10, block, count, NULL);
+	return static_cast<errcode_t>(js_request_entry(channel, 10, block, static_cast<int>(count), NULL));  // TODO: what if count doesn't fit in int?
 }
 
 static errcode_t js_cache_readahead_entry(io_channel channel, unsigned long long block, unsigned long long count) {
-	return js_request_entry(channel, 11, block, count, NULL);
+	return static_cast<errcode_t>(js_request_entry(channel, 11, block, static_cast<int>(count), NULL));
 }
 
 static errcode_t js_zeroout_entry(io_channel channel, unsigned long long block, unsigned long long count) {
-	return js_request_entry(channel, 12, block, count, NULL);
+	return static_cast<errcode_t>(js_request_entry(channel, 12, block, static_cast<int>(count), NULL));
 }
 
 struct struct_io_manager js_io_manager;

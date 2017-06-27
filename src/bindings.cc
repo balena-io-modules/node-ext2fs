@@ -9,10 +9,10 @@ NAN_MODULE_INIT(InitAll) {
 	NAN_EXPORT(target, closeExt);
 	NAN_EXPORT(target, close);
 	NAN_EXPORT(target, read);
-	NAN_EXPORT(target, fstat);
+	NAN_EXPORT(target, fstat_);
 	NAN_EXPORT(target, readdir);
 	NAN_EXPORT(target, write);
-	NAN_EXPORT(target, unlink);
+	NAN_EXPORT(target, unlink_);
 	NAN_EXPORT(target, rmdir);
 	NAN_EXPORT(target, mkdir);
 	NAN_EXPORT(target, fchmod);

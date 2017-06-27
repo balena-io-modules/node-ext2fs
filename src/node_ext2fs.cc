@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <nan.h>
+#include <ctime>
 
 #include "ext2fs.h"
 #include "js_io.h"
 #include "async.h"
 
 #include "node_ext2fs.h"
+
+#define O_DIRECTORY 0200000
+#define O_NOATIME 04000000
 
 #define CHECK_ARGS(length) \
 	if (info.Length() != length) { \
@@ -46,7 +50,7 @@ ext2_file_t get_file(NAN_METHOD_ARGS_TYPE info) {
 }
 
 unsigned int get_flags(NAN_METHOD_ARGS_TYPE info) {
-	return info[1]->IntegerValue();
+	return static_cast<unsigned int>(info[1]->IntegerValue());
 }
 
 std::string get_path(NAN_METHOD_ARGS_TYPE info) {
@@ -181,7 +185,7 @@ class UmountWorker : public AsyncWorker {
 };
 X_NAN_METHOD(umount, UmountWorker, 2);
 
-ext2_ino_t string_to_inode(ext2_filsys fs, char *str) {
+ext2_ino_t string_to_inode(ext2_filsys fs, const char *str) {
 	ext2_ino_t ino;
 	int retval;
 
@@ -207,8 +211,8 @@ ext2_ino_t get_parent_dir_ino(ext2_filsys fs, char* path) {
 	return parent_ino;
 }
 
-char* get_filename(char* path) {
-	char* last_slash = strrchr(path, (int)'/');
+char* get_filename(const char* path) {
+	char* last_slash = strrchr((char*)path, (int)'/');
 	if (last_slash == NULL) {
 		return NULL;
 	}
@@ -246,9 +250,9 @@ unsigned int translate_open_flags(unsigned int js_flags) {
 	return result;
 }
 
-errcode_t create_file(ext2_filsys fs, char* path, unsigned int mode, ext2_ino_t* ino) {
+errcode_t create_file(ext2_filsys fs, const char* path, unsigned int mode, ext2_ino_t* ino) {
 	errcode_t ret = 0;
-	ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
+	ext2_ino_t parent_ino = get_parent_dir_ino(fs, (char*)path);
 	if (parent_ino == NULL) {
 		return -ENOTDIR;
 	}
@@ -273,7 +277,7 @@ errcode_t create_file(ext2_filsys fs, char* path, unsigned int mode, ext2_ino_t*
 	struct ext2_inode inode;
 	memset(&inode, 0, sizeof(inode));
 	inode.i_mode = (mode & ~LINUX_S_IFMT) | LINUX_S_IFREG;
-	inode.i_atime = inode.i_ctime = inode.i_mtime = time(0);
+	inode.i_atime = inode.i_ctime = inode.i_mtime = static_cast<__u32>(time(0));
 	inode.i_links_count = 1;
 	ret = ext2fs_inode_size_set(fs, &inode, 0);  // TODO: udpate size? also on write?
 	if (ret) return ret;
@@ -302,8 +306,8 @@ class OpenWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			fs = get_filesystem(info);
 			path = get_path(info);
-			flags = info[2]->IntegerValue();
-			mode = info[3]->IntegerValue();
+			flags = static_cast<unsigned int>(info[2]->IntegerValue());
+			mode = static_cast<unsigned int>(info[3]->IntegerValue());
 		}
 
 		void Execute () {
@@ -381,6 +385,17 @@ class CloseWorker : public AsyncWorker {
 };
 X_NAN_METHOD(close, CloseWorker, 3);
 
+#ifdef _WIN32
+#define CLOCK_REALTIME 0
+int clock_gettime(int, struct timespec *spec)      //C-file part
+{  __int64 wintime; GetSystemTimeAsFileTime((FILETIME*)&wintime);
+   wintime      -=116444736000000000i64;  //1jan1601 to 1jan1970
+   spec->tv_sec  =wintime / 10000000i64;           //seconds
+   spec->tv_nsec =wintime % 10000000i64 *100;      //nano-seconds
+   return 0;
+}
+#endif
+
 static int update_xtime(ext2_file_t file, bool a, bool c, bool m) {
 	errcode_t err = 0;
 	err = ext2fs_read_inode(file->fs, file->ino, &(file->inode));
@@ -388,13 +403,13 @@ static int update_xtime(ext2_file_t file, bool a, bool c, bool m) {
 	struct timespec now;
 	clock_gettime(CLOCK_REALTIME, &now);
 	if (a) {
-		file->inode.i_atime = now.tv_sec;
+		file->inode.i_atime = static_cast<__u32>(now.tv_sec);
 	}
 	if (c) {
-		file->inode.i_ctime = now.tv_sec;
+		file->inode.i_ctime = static_cast<__u32>(now.tv_sec);
 	}
 	if (m) {
-		file->inode.i_mtime = now.tv_sec;
+		file->inode.i_mtime = static_cast<__u32>(now.tv_sec);
 	}
 	increment_version(&(file->inode));
 	err = ext2fs_write_inode(file->fs, file->ino, &(file->inode));
@@ -408,9 +423,9 @@ class ReadWorker : public AsyncWorker {
 			file = get_file(info);
 			flags = get_flags(info);
 			buffer = (char*) node::Buffer::Data(info[2]);
-			offset = info[3]->IntegerValue();  // buffer offset
-			length = info[4]->IntegerValue();
-			position = info[5]->IntegerValue();  // file offset
+			offset = static_cast<unsigned int>(info[3]->IntegerValue());  // buffer offset
+			length = static_cast<unsigned int>(info[4]->IntegerValue());
+			position = static_cast<unsigned int>(info[5]->IntegerValue());  // file offset
 		}
 
 		void Execute () {
@@ -459,9 +474,9 @@ class WriteWorker : public AsyncWorker {
 			file = get_file(info);
 			flags = get_flags(info);
 			buffer = static_cast<char*>(node::Buffer::Data(info[2]));
-			offset = info[3]->IntegerValue();  // buffer offset
-			length = info[4]->IntegerValue();
-			position = info[5]->IntegerValue();  // file offset
+			offset = static_cast<unsigned int>(info[3]->IntegerValue());  // buffer offset
+			length = static_cast<unsigned int>(info[4]->IntegerValue());
+			position = static_cast<unsigned int>(info[5]->IntegerValue());  // file offset
 		}
 
 		void Execute () {
@@ -512,7 +527,7 @@ class ChModWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			file = get_file(info);
 			flags = get_flags(info);
-			mode = info[2]->IntegerValue();
+			mode = static_cast<unsigned int>(info[2]->IntegerValue());
 		}
 
 		void Execute () {
@@ -550,8 +565,8 @@ class ChOwnWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			file = get_file(info);
 			flags = get_flags(info);
-			uid = info[2]->IntegerValue();
-			gid = info[3]->IntegerValue();
+			uid = static_cast<unsigned int>(info[2]->IntegerValue());
+			gid = static_cast<unsigned int>(info[3]->IntegerValue());
 		}
 
 		void Execute () {
@@ -723,7 +738,7 @@ class UnlinkWorker : public AsyncWorker {
 	protected:
 		bool rmdir;
 };
-X_NAN_METHOD(unlink, UnlinkWorker, 3);
+X_NAN_METHOD(unlink_, UnlinkWorker, 3);
 
 class RmDirWorker : public UnlinkWorker {
 	public:
@@ -740,12 +755,12 @@ class MkDirWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			fs = get_filesystem(info);
 			path = get_path(info);
-			mode = info[2]->IntegerValue();
+			mode = static_cast<unsigned int>(info[2]->IntegerValue());
 		}
 
 		void Execute () {
 			// TODO: free ?
-			ext2_ino_t parent_ino = get_parent_dir_ino(fs, path.c_str());
+			ext2_ino_t parent_ino = get_parent_dir_ino(fs, (char*)path.c_str());
 			if (parent_ino == NULL) {
 				ret = -ENOTDIR;
 				return;
@@ -804,7 +819,7 @@ v8::Local<v8::Value> timespecToMilliseconds(__u32 seconds) {
     return Nan::New<v8::Number>(static_cast<double>(seconds) * 1000);
 }
 
-NAN_METHOD(fstat) {
+NAN_METHOD(fstat_) {
 	// TODO handle 32 bit {u,g}ids
 	CHECK_ARGS(4)
 	auto file = get_file(info);
