@@ -7,6 +7,10 @@
 /* Define to 1 if debugging the blkid library */
 /* #undef CONFIG_BLKID_DEBUG */
 
+#define EOVERFLOW EFBIG
+
+#include <Winsock2.h>
+
 /* Define to 1 to compile findfs */
 #define CONFIG_BUILD_FINDFS 1
 
@@ -526,7 +530,7 @@
 /* #undef HAVE_SYS_SYSCTL_H */
 
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
-#define HAVE_SYS_SYSMACROS_H 1
+#undef HAVE_SYS_SYSMACROS_H
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
