@@ -12,17 +12,26 @@ describe('ext2fs', function() {
 	describe('mount', function() {
 		it('ext2', function() {
 			return Promise.using(filedisk.openFile(EXT2_PATH, 'r'), function(fd) {
-				return ext2fs.mountAsync(new filedisk.FileDisk(fd));
+				return ext2fs.mountAsync(new filedisk.FileDisk(fd))
+				.then(function(filesystem) {
+					return ext2fs.umountAsync(filesystem);
+				});
 			})
 		});
 		it('ext3', function() {
 			return Promise.using(filedisk.openFile(EXT3_PATH, 'r'), function(fd) {
-				return ext2fs.mountAsync(new filedisk.FileDisk(fd));
+				return ext2fs.mountAsync(new filedisk.FileDisk(fd))
+				.then(function(filesystem) {
+					return ext2fs.umountAsync(filesystem);
+				});
 			});
 		});
 		it('ext4', function() {
 			return Promise.using(filedisk.openFile(EXT4_PATH, 'r'), function(fd) {
-				return ext2fs.mountAsync(new filedisk.FileDisk(fd));
+				return ext2fs.mountAsync(new filedisk.FileDisk(fd))
+				.then(function(filesystem) {
+					return ext2fs.umountAsync(filesystem);
+				});
 			})
 		});
 	});
@@ -31,8 +40,11 @@ describe('ext2fs', function() {
 			return Promise.using(filedisk.openFile(EXT4_PATH, 'r'), function(fd) {
 				return ext2fs.mountAsync(new filedisk.FileDisk(fd));
 			})
-			.then(function(fs) {
-				return ext2fs.trimAsync(fs);
+			.then(function(filesystem) {
+				return ext2fs.trimAsync(filesystem)
+				.then(function() {
+					return ext2fs.umountAsync(filesystem);
+				});
 			});
 		});
 	});

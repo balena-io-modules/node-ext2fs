@@ -21,7 +21,7 @@ CFLAGS = -DHAVE_CONFIG_H \
 JSFLAGS = \
 	--bind \
 	-s DEMANGLE_SUPPORT=1 \
-	-s EXPORTED_FUNCTIONS="['_ext2fs_block_alloc_stats', '_ext2fs_open', '__Z5mountPFvtmmPcPiEPFvlP18struct_ext2_filsysE', '__Z4trimjPFvlE']" \
+	-s EXPORTED_FUNCTIONS="['_ext2fs_block_alloc_stats', '_ext2fs_open', '__Z5mountPFvtmmPcPiEPFvlP18struct_ext2_filsysE', '__Z4trimjPFvlE', '__Z6umountjPFvlE']" \
 	-s RESERVED_FUNCTION_POINTERS=20 \
 	-s EMTERPRETIFY=1 \
 	-s EMTERPRETIFY_ASYNC=1 \
@@ -111,7 +111,7 @@ src/js_io.o: src/js_io.cc src/js_io.h
 	$(Q) $(CXX) -std=c++11 $(CFLAGS) $(JSFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(libext2fsdir)/*.o $(libext2fsdir)/../*.o libext2fs.a src/js_io.o lib/libext2fs.js lib/libext2fs.js.map
+	rm -f $(libext2fsdir)*.o $(libext2fsdir)../*.o libext2fs.a src/js_io.o lib/libext2fs.js lib/libext2fs.js.map
 
 lib/libext2fs.js: libext2fs.a
 	$(E) "	JSGEN $<"

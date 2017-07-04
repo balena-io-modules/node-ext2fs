@@ -153,6 +153,12 @@ void mount(disk_request_t* disk_request, mount_callback_t* callback) {
 	callback(ret, fs);
 }
 
+void umount(unsigned int fsPointer, trim_callback_t* callback) {
+	ext2_filsys fs = reinterpret_cast<ext2_filsys>(fsPointer);
+	errcode_t ret = ext2fs_close(fs);
+	callback(ret);
+}
+
 void trim(unsigned int fsPointer, trim_callback_t* callback) {
 	ext2_filsys fs = reinterpret_cast<ext2_filsys>(fsPointer);
 
