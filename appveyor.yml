@@ -1,0 +1,33 @@
+# appveyor file
+# http://www.appveyor.com/docs/appveyor-yml
+image:
+  - Visual Studio 2015
+
+init:
+  - git config --global core.autocrlf input
+
+cache:
+  - C:\Users\appveyor\.node-gyp
+  - '%AppData%\npm-cache'
+
+environment:
+  matrix:
+    - nodejs_version: 8
+    - nodejs_version: 6
+
+install:
+  - ps: Install-Product node $env:nodejs_version x64
+  - choco install mingw
+  - npm install -g --production windows-build-tools
+  # Unlike travis, appveyor doesn't clone --recursive, so we have to:
+  - git submodule update --init --recursive
+
+build_script:
+  - refreshenv
+  # Installs dependencies, and runs node-gyp rebuild
+  - npm install --msvs_version=2015
+
+test_script:
+  - node --version
+  - npm --version
+  - cmd: npm test
