@@ -31,28 +31,90 @@ Simply compile and install `node-ext2fs` using `npm`:
 $ npm install ext2fs
 ```
 
+Usage
+-----
+
+Mount a disk image and use the returned `fs` object.
+The fs returned object behaves like node's `fs` except it doesn't provide any
+xxxxSync method.
+You can also issue `DISCARD` requests using `ext2fs.trim(filesystem, callback)`
+
+See the examples below.
+
 Example
 -------
 
 ```javascript
 const ext2fs = require('ext2fs');
 const filedisk = require('file-disk');
+const fs = require('fs');
 
-const disk = new filedisk.FileDisk('/path/to/ext4_filesystem.img');
+const fd = fs.openSync('/path/to/ext4_filesystem.img', 'r+');
+const disk = new filedisk.FileDisk(fd);
 
 ext2fs.mount(disk, function(err, filesystem) {
 	if (err) {
 		return;
 	}
+	// filesystem behaves like node's fs
 	console.log('Mounted filesystem successfully');
-
-	ext2fs.trim(filesystem, function(err) {
+	filesystem.readFile('/some_file', 'utf8', function(err, contents) {
 		if (err) {
 			return;
 		}
-		console.log('TRIMed filesystem');
-	}
+		console.log('contents:', contents);
+		ext2fs.trim(filesystem, function(err) {
+			if (err) {
+				return;
+			}
+			console.log('TRIMed filesystem');
+			// don't forget to umount
+			ext2fs.umount(filesystem, function(err) {
+				if (err) {
+					return;
+				}
+				console.log('filesystem umounted')
+				fs.closeSync(fd)
+			});
+		});
+	});
 });
+
+```
+
+Example using promises
+----------------------
+
+The code above isn't very practical as it requires a new level of indentation
+for each call. Let's simplify it using promises.
+
+You can use `ext2fs.mountDisposer` with `Promise.using` so the filesystem is
+umounted automatically when you're done using it.
+
+```javascript
+const Promise = require('bluebird')
+const ext2fs = Promise.promisifyAll(require('ext2fs'));
+const filedisk = require('file-disk');
+
+const path = 'test/fixtures/ext2.img';
+
+Promise.using(filedisk.openFile(path, 'r+'), function(fd) {
+	const disk = new filedisk.FileDisk(fd);
+	return Promise.using(ext2fs.mountDisposer(disk), function(filesystem) {
+		filesystem = Promise.promisifyAll(filesystem);
+		// filesystem behaves like node's fs
+		console.log('Mounted filesystem successfully');
+		return filesystem.readFileAsync('/1', 'utf8')
+		.then(function(contents) {
+			console.log('contents:', contents);
+			return ext2fs.trimAsync(filesystem);
+		})
+		.then(function() {
+			console.log('TRIMed filesystem');
+		});
+	});
+})
+
 ```
 
 Support
