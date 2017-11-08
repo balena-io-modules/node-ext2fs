@@ -17,7 +17,8 @@
     "test": "mocha",
     "publish-please": "publish-please",
     "prepublish": "publish-please guard",
-    "install": "node-pre-gyp install --silent || (echo '\nCould not find pre-built ext2fs, rebuilding. If this fails, see https://github.com/resin-io/node-ext2fs#support.\n' && node-pre-gyp configure build)"
+    "install": "node-pre-gyp install --fallback-to-build",
+    "pre-gyp-release": "node-pre-gyp rebuild package && node-pre-gyp-github publish --release"
   },
   "binary": {
     "module_name": "bindings",
