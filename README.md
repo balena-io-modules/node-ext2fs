@@ -122,6 +122,20 @@ Support
 
 If you're having any problems, please [raise an issue][github-issue] on GitHub.
 
+### Package fails to install as no pre-built package is available
+
+Node-ext2fs is pre-built for a range of OSs and Node versions, but we don't have perfect coverage
+here yet, and it may fail to install if you're not on an pre-built version and you don't have local
+build tools available.
+
+If you have an issue with this, and your platform is one you feel we should support, please
+[raise an issue][github-issue] on this repo, so we can look at adding your configuration to the
+pre-built versions that works automatically.
+
+In the meantime, you can typically install this package by updating to a newer Node release which
+does have pre-built binaries, or by setting up a local environment so the build is successful (see
+['Installation'](#installation) above).
+
 License
 -------
 
