@@ -25,7 +25,7 @@ install:
 build_script:
   - refreshenv
   # Installs dependencies, and runs node-gyp rebuild
-  - npm install --msvs_version=2015
+  - npm install --msvs_version=2015 --build-from-source
 
 test_script:
   - node --version
