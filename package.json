@@ -1,6 +1,6 @@
 {
   "name": "ext2fs",
-  "version": "0.0.15",
+  "version": "0.1.0",
   "description": "NodeJS native bindings to the libext2fs for cross-platform ext filesystem handling",
   "author": "Petros Angelatos <petrosagg@resin.io>",
   "contributors": [
@@ -34,7 +34,7 @@
     "nan": "^2.5.1",
     "node-pre-gyp": "^0.6.39"
   },
-  "bundledDependencies":[
+  "bundledDependencies": [
     "node-pre-gyp"
   ],
   "devDependencies": {
