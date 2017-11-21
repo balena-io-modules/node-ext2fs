@@ -10,9 +10,6 @@ node_js:
   - "8"
   - "9"
 
-env:
-  - CXX=g++-4.8
-
 addons:
   apt:
     sources:
@@ -21,8 +18,6 @@ addons:
       - g++-4.8
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gcc48; fi
   - npm install --build-from-source
 
 notifications:
