@@ -24,7 +24,7 @@
     "module_name": "bindings",
     "module_path": "pregyp",
     "host": "https://github.com/resin-io/node-ext2fs/releases/download/",
-    "remote_path": "{version}"
+    "remote_path": "v{version}"
   },
   "dependencies": {
     "async": "^2.4.1",
