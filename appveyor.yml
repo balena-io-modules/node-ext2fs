@@ -12,7 +12,9 @@ cache:
 
 environment:
   matrix:
+    - nodejs_version: 9
     - nodejs_version: 8
+    - nodejs_version: 7
     - nodejs_version: 6
 
 install:
@@ -25,9 +27,13 @@ install:
 build_script:
   - refreshenv
   # Installs dependencies, and runs node-gyp rebuild
-  - npm install --msvs_version=2015
+  - npm install --msvs_version=2015 --build-from-source
 
 test_script:
   - node --version
   - npm --version
   - cmd: npm test
+
+deploy_script:
+  - IF "%APPVEYOR_REPO_TAG%" == "true" (npm run pre-gyp-release)
+  - IF NOT "%APPVEYOR_REPO_TAG%" == "true" (echo 'Not tagged, skipping deploy')
