@@ -879,7 +879,7 @@ describe('ext2fs', function() {
 				return fs.trimAsync();
 			})
 			.then(function() {
-				return disk.getBlockMapAsync(blockSize);
+				return disk.getBlockMap(blockSize, true);  // true is for calculateChecksums
 			})
 			.then(function(bmap) {
 				assert.strictEqual(bmap.imageSize, 4194304);
