@@ -11,7 +11,7 @@
   "main": "index.js",
   "gypfile": true,
   "scripts": {
-    "upload": "prebuild -t $npm_config_node_version -u $NODE_PRE_GYP_GITHUB_TOKEN",
+    "upload": "cross-env prebuild -t $npm_config_node_version -u $NODE_PRE_GYP_GITHUB_TOKEN",
     "build": "node-gyp build",
     "pretest": "eslint lib test",
     "test": "mocha",
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "bluebird": "^3.4.7",
+    "cross-env": "^5.1.4",
     "mocha": "^3.2.0",
     "prebuild": "^7.4.0",
     "publish-please": "^2.2.0"
