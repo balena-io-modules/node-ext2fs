@@ -11,7 +11,7 @@
   "main": "index.js",
   "gypfile": true,
   "scripts": {
-    "upload": "cross-env prebuild -t $npm_config_node_version -u $NODE_PRE_GYP_GITHUB_TOKEN",
+    "upload": "cross-env prebuild -t $npm_config_node_version -u $NODE_PRE_GYP_GITHUB_TOKEN --include-regex 'bindings\\.node$'",
     "build": "node-gyp build",
     "pretest": "eslint lib test",
     "test": "mocha",
