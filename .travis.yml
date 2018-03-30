@@ -25,7 +25,7 @@ notifications:
 
 deploy:
   provider: script
-  script: npm run pre-gyp-release
+  script: npm run upload
   skip_cleanup: true
   on:
     # Deploys happen for all tagged releases

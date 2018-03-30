@@ -1,6 +1,6 @@
 {
   "name": "ext2fs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "NodeJS native bindings to the libext2fs for cross-platform ext filesystem handling",
   "author": "Petros Angelatos <petrosagg@resin.io>",
   "contributors": [
@@ -11,20 +11,13 @@
   "main": "index.js",
   "gypfile": true,
   "scripts": {
-    "configure": "node-gyp configure",
+    "upload": "cross-env prebuild -t $npm_config_node_version -u $NODE_PRE_GYP_GITHUB_TOKEN",
     "build": "node-gyp build",
     "pretest": "eslint lib test",
     "test": "mocha",
     "publish-please": "publish-please",
     "prepublish": "publish-please guard",
-    "install": "node-pre-gyp install --fallback-to-build",
-    "pre-gyp-release": "node-pre-gyp rebuild package && node-pre-gyp-github publish --release"
-  },
-  "binary": {
-    "module_name": "bindings",
-    "module_path": "pregyp",
-    "host": "https://github.com/resin-io/node-ext2fs/releases/download/",
-    "remote_path": "v{version}"
+    "install": "prebuild-install || node-gyp rebuild"
   },
   "dependencies": {
     "async": "^2.4.1",
@@ -32,15 +25,13 @@
     "eslint": "^3.19.0",
     "file-disk": "^4.1.1",
     "nan": "^2.5.1",
-    "node-pre-gyp": "^0.9.0"
+    "prebuild-install": "^2.5.1"
   },
-  "bundledDependencies": [
-    "node-pre-gyp"
-  ],
   "devDependencies": {
     "bluebird": "^3.4.7",
+    "cross-env": "^5.1.4",
     "mocha": "^3.2.0",
-    "node-pre-gyp-github": "^1.3.1",
+    "prebuild": "^7.4.0",
     "publish-please": "^2.2.0"
   },
   "homepage": "https://github.com/resin-io/node-ext2fs#readme",
