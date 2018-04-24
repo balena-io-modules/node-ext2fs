@@ -657,7 +657,7 @@ class ReadDirWorker : public AsyncWorker {
 			if (ret) return;
 			ret = ext2fs_check_directory(fs, ino);
 			if (ret) return;
-			char* block_buf = new char[1024];
+			char* block_buf = new char[fs->blocksize];
 			ret = ext2fs_dir_iterate(
 				fs,
 				ino,

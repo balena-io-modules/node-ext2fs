@@ -12,7 +12,7 @@
   "gypfile": true,
   "scripts": {
     "upload": "cross-env prebuild -t $npm_config_node_version -u $NODE_PRE_GYP_GITHUB_TOKEN --include-regex 'bindings\\.node$'",
-    "build": "node-gyp build",
+    "build": "node-gyp rebuild",
     "pretest": "eslint lib test",
     "test": "mocha",
     "publish-please": "publish-please",
