@@ -15,7 +15,8 @@ const ext2fs = Promise.promisifyAll(require('..'));
 const IMAGES = {
 	'ext2': 'ext2.img',
 	'ext3': 'ext3.img',
-	'ext4': 'ext4.img'
+	'ext4': 'ext4.img',
+	'ext4-4k-block-size': 'ext4-4k-block-size.img'
 };
 
 function humanFileMode(fs, stats) {
@@ -51,6 +52,8 @@ function testOnAllDisks(fn) {
 function testOnAllDisksMount(fn) {
 	return testOnAllDisks(function(disk) {
 		return Promise.using(ext2fs.mountDisposer(disk), function(fs) {
+			// Might be useful to get the disk name
+			fs.disk = disk;
 			return fn(Promise.promisifyAll(fs, { multiArgs: true }));
 		});
 	});
@@ -110,9 +113,14 @@ describe('ext2fs', function() {
 				assert.strictEqual(stats.uid, 1000);
 				assert.strictEqual(stats.gid, 1000);
 				assert.strictEqual(stats.rdev, 0);
-				assert.strictEqual(stats.blksize, 1024);
+				if (fs.disk.imageName === 'ext4-4k-block-size') {
+					assert.strictEqual(stats.blksize, 4096);
+					assert.strictEqual(stats.blocks, 8);
+				} else {
+					assert.strictEqual(stats.blksize, 1024);
+					assert.strictEqual(stats.blocks, 2);
+				}
 				assert.strictEqual(stats.size, 4);
-				assert.strictEqual(stats.blocks, 2);
 				assert.strictEqual(
 					stats.atime.getTime(),
 					(new Date('2017-05-23T18:56:45.000Z')).getTime()
@@ -145,9 +153,14 @@ describe('ext2fs', function() {
 					assert.strictEqual(stats.uid, 1000);
 					assert.strictEqual(stats.gid, 1000);
 					assert.strictEqual(stats.rdev, 0);
-					assert.strictEqual(stats.blksize, 1024);
+					if (fs.disk.imageName === 'ext4-4k-block-size') {
+						assert.strictEqual(stats.blksize, 4096);
+						assert.strictEqual(stats.blocks, 8);
+					} else {
+						assert.strictEqual(stats.blksize, 1024);
+						assert.strictEqual(stats.blocks, 2);
+					}
 					assert.strictEqual(stats.size, 4);
-					assert.strictEqual(stats.blocks, 2);
 					assert.strictEqual(
 						stats.atime.getTime(),
 						(new Date('2017-05-23T18:56:45.000Z')).getTime()
@@ -270,7 +283,11 @@ describe('ext2fs', function() {
 					assert.strictEqual(stats.uid, 0);
 					assert.strictEqual(stats.gid, 0);
 					assert.strictEqual(stats.rdev, 0);
-					assert.strictEqual(stats.blocks, 2);
+					if (fs.disk.imageName === 'ext4-4k-block-size') {
+						assert.strictEqual(stats.blocks, 8);
+					} else {
+						assert.strictEqual(stats.blocks, 2);
+					}
 					assert.strictEqual(stats.size, content.length);
 					assert.strictEqual(humanFileMode(fs, stats), '-rwxrwxrwx');
 					const now = Date.now();
