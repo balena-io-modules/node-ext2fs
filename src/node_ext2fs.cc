@@ -96,12 +96,12 @@ class TrimWorker : public AsyncWorker {
 				v8::Local<v8::Value> argv[] = {
 					ErrnoException(-ret)
 				};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 			} else {
 				v8::Local<v8::Value> argv[] = {
 					Null(),
 				};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 			}
 		}
 
@@ -139,13 +139,13 @@ class MountWorker : public AsyncWorker {
 			HandleScope scope;
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			// FIXME: when V8 garbage collects this object we should also free
 			// any resources allocated by libext2fs
 			v8::Local<v8::Value> argv[] = {Null(), New<v8::External>(fs)};
-			callback->Call(2, argv);
+			callback->Call(2, argv, async_resource);
 		}
 
 	private:
@@ -176,7 +176,7 @@ class UmountWorker : public AsyncWorker {
 			} else {
 				argv[0] = Null();
 			}
-			callback->Call(1, argv);
+			callback->Call(1, argv, async_resource);
 		}
 
 	private:
@@ -339,11 +339,11 @@ class OpenWorker : public AsyncWorker {
 			HandleScope scope;
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Value> argv[] = {Null(), New<v8::External>(file)};
-			callback->Call(2, argv);
+			callback->Call(2, argv, async_resource);
 		}
 
 	private:
@@ -371,11 +371,11 @@ class CloseWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Value> argv[] = {Null()};
-			callback->Call(1, argv);
+			callback->Call(1, argv, async_resource);
 		}
 
 	private:
@@ -465,11 +465,11 @@ class ReadWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Value> argv[] = {Null(), New<v8::Integer>(got)};
-			callback->Call(2, argv);
+			callback->Call(2, argv, async_resource);
 		}
 
 	private:
@@ -519,11 +519,11 @@ class WriteWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Value> argv[] = {Null(), New<v8::Integer>(written)};
-			callback->Call(2, argv);
+			callback->Call(2, argv, async_resource);
 		}
 
 	private:
@@ -561,11 +561,11 @@ class ChModWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Value> argv[] = {Null()};
-			callback->Call(1, argv);
+			callback->Call(1, argv, async_resource);
 		}
 
 	private:
@@ -600,11 +600,11 @@ class ChOwnWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Value> argv[] = {Null()};
-			callback->Call(1, argv);
+			callback->Call(1, argv, async_resource);
 		}
 
 	private:
@@ -672,7 +672,7 @@ class ReadDirWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Array> result = Nan::New<v8::Array>();
@@ -686,7 +686,7 @@ class ReadDirWorker : public AsyncWorker {
 				);
 			}
 			v8::Local<v8::Value> argv[] = {Null(), result};
-			callback->Call(2, argv);
+			callback->Call(2, argv, async_resource);
 		}
 
 	private:
@@ -740,11 +740,11 @@ class UnlinkWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Value> argv[] = {Null()};
-			callback->Call(1, argv);
+			callback->Call(1, argv, async_resource);
 		}
 
 	private:
@@ -809,11 +809,11 @@ class MkDirWorker : public AsyncWorker {
 		void HandleOKCallback () {
 			if (ret) {
 				v8::Local<v8::Value> argv[] = {ErrnoException(-ret)};
-				callback->Call(1, argv);
+				callback->Call(1, argv, async_resource);
 				return;
 			}
 			v8::Local<v8::Value> argv[] = {Null()};
-			callback->Call(1, argv);
+			callback->Call(1, argv, async_resource);
 		}
 
 	private:
