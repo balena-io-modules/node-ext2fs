@@ -84,7 +84,10 @@ errcode_t js_request_entry(io_channel channel, int type, unsigned long long bloc
 static errcode_t js_open_entry(const char *hex_ptr, int flags, io_channel *channel) {
 	io_channel io = NULL;
 
-	io = (io_channel) malloc(sizeof(struct struct_io_channel));
+	errcode_t ret = ext2fs_get_mem(sizeof(struct struct_io_channel), &io);
+	if (ret) {
+		return ret;
+	}
 	memset(io, 0, sizeof(struct struct_io_channel));
 
 	io->magic = EXT2_ET_MAGIC_IO_CHANNEL;
@@ -96,7 +99,12 @@ static errcode_t js_open_entry(const char *hex_ptr, int flags, io_channel *chann
 }
 
 static errcode_t js_close_entry(io_channel channel) {
-	return js_request_entry(channel, 1, 0, 0, NULL);
+	errcode_t ret = js_request_entry(channel, 1, 0, 0, NULL);
+	if (ret) {
+		return ret;
+	}
+	ext2fs_free_mem(&channel);
+	return ret;
 }
 
 static errcode_t set_blksize(io_channel channel, int blksize) {
