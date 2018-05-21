@@ -18,12 +18,12 @@ struct request_state_t {
 	uv_sem_t js_sem;
 };
 
-static void js_request_done(NAN_METHOD_ARGS_TYPE info, void* _s) {
+static void js_request_done(v8::Local<v8::Value> ret, void* _s) {
 	auto *s = reinterpret_cast<request_state_t*>(_s);
-	if (info[0]->IsNull()) {
+	if (ret->IsNull()) {
 		s->ret = 0;
 	} else {
-		s->ret = static_cast<errcode_t>(info[0]->IntegerValue());
+		s->ret = static_cast<errcode_t>(ret->IntegerValue());
 	}
 
 	uv_sem_post(&s->js_sem);
@@ -57,10 +57,12 @@ static void js_request(void *_s) {
 		New<v8::Number>(offset),
 		New<v8::Number>(size),
 		buffer,
-		make_callback(js_request_done, s),
+		New<v8::External>(reinterpret_cast<void *>(js_request_done)),
+		New<v8::External>(s),
+		get_callback(),
 	};
 
-	request_cb->Call(5, argv);
+	request_cb->Call(7, argv);
 }
 
 errcode_t js_request_entry(io_channel channel, int type, unsigned long long block, int count, void *data) {
