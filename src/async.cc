@@ -5,12 +5,6 @@ using namespace Nan;
 uv_async_t *async = NULL;
 uv_mutex_t lock;
 
-struct call_info_t {
-	void (*fn)(void *);
-	void *args;
-	uv_sem_t sem;
-};
-
 static void default_loop_entry(uv_async_t* handle) {
 	call_info_t *info = (call_info_t*) handle->data;
 
@@ -19,17 +13,32 @@ static void default_loop_entry(uv_async_t* handle) {
 	uv_sem_post(&info->sem);
 }
 
+static NAN_METHOD(callback_wrapper) {
+	if ((async == NULL) || (uv_is_closing((uv_handle_t*)async) != 0)) {
+		return;
+	}
+	void (*fn)(v8::Local<v8::Value>, void *) = reinterpret_cast<void (*)(v8::Local<v8::Value>, void *)>(info[1].As<v8::External>()->Value());
+	void *s = static_cast<void *>(info[2].As<v8::External>()->Value());
+	fn(info[0], s);
+}
+
+static bool persistent_callback_initialized = false;
+
 void init_async() {
 	async = new uv_async_t;
 	uv_async_init(uv_default_loop(), async, default_loop_entry);
 	uv_mutex_init(&lock);
+	if (!persistent_callback_initialized) {
+		persistent_callback.Reset(New<v8::FunctionTemplate>(callback_wrapper)->GetFunction());
+		persistent_callback_initialized = true;
+	}
 }
 
 void close_async() {
 	uv_mutex_destroy(&lock);
 	uv_close((uv_handle_t*)async, [](uv_handle_t* handle) {
 		delete handle;
-    });
+	});
 }
 
 void run_on_default_loop(void (*fn)(void *), void *args) {
@@ -51,28 +60,6 @@ void run_on_default_loop(void (*fn)(void *), void *args) {
 	uv_mutex_unlock(&lock);
 }
 
-static NAN_METHOD(callback_wrapper) {
-	if ((async == NULL) || (uv_is_closing((uv_handle_t*)async) != 0)) {
-		return;
-	}
-	auto data = info.Data()->ToObject();
-
-	auto fn = reinterpret_cast<void (*)(NAN_METHOD_ARGS_TYPE, void *)>(data->Get(0).As<v8::External>()->Value());
-	auto args = data->Get(1).As<v8::External>()->Value();
-
-	if (fn && args) {
-		// Ensure callback is called only once
-		Delete(data, 0);
-		Delete(data, 1);
-
-		fn(info, args);
-	}
-}
-
-v8::Local<v8::Function> make_callback(void (*fn)(NAN_METHOD_ARGS_TYPE, void *), void *args) {
-    auto data = New<v8::Object>();
-	data->Set(0, New<v8::External>(reinterpret_cast<void*>(fn)));
-	data->Set(1, New<v8::External>(args));
-
-	return New<v8::FunctionTemplate>(callback_wrapper, data)->GetFunction();
+v8::Local<v8::Function> get_callback() {
+	return New(persistent_callback);
 }
