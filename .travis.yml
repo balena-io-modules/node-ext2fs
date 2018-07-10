@@ -26,7 +26,8 @@ notifications:
 
 deploy:
   provider: script
-  script: npm run upload
+  script:
+    - npm run upload && npm run upload-electron
   skip_cleanup: true
   on:
     # Deploys happen for all tagged releases
