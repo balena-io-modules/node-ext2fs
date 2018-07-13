@@ -15,7 +15,7 @@
     "upload-win": "prebuild -t %npm_config_node_version% -u %NODE_PRE_GYP_GITHUB_TOKEN% --include-regex 'bindings\\.node$'",
     "upload-electron": "cross-env prebuild --runtime electron -t 2.0.3 -t 1.7.15 -u $NODE_PRE_GYP_GITHUB_TOKEN --include-regex 'bindings\\.node$'",
     "build": "node-gyp rebuild",
-    "pretest": "eslint lib test",
+    "pretest": "eslint lib test example",
     "test": "mocha",
     "publish-please": "publish-please",
     "prepublish": "publish-please guard",
