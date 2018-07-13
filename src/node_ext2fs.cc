@@ -404,12 +404,12 @@ int clock_gettime(int, struct timespec *spec) {
 #include <sys/time.h>
 #define CLOCK_REALTIME 0
 int clock_gettime(int, struct timespec* spec) {
-    struct timeval now;
-    int rv = gettimeofday(&now, NULL);
-    if (rv) return rv;
-    spec->tv_sec  = now.tv_sec;
-    spec->tv_nsec = now.tv_usec * 1000;
-    return 0;
+		struct timeval now;
+		int rv = gettimeofday(&now, NULL);
+		if (rv) return rv;
+		spec->tv_sec  = now.tv_sec;
+		spec->tv_nsec = now.tv_usec * 1000;
+		return 0;
 }
 #endif
 
@@ -824,16 +824,13 @@ class MkDirWorker : public AsyncWorker {
 };
 X_NAN_METHOD(mkdir, MkDirWorker, 4);
 
-v8::Local<v8::Value> castUint32(long unsigned int x) {
-	return Nan::New<v8::Uint32>(static_cast<uint32_t>(x));
-}
-
-v8::Local<v8::Value> castInt32(long int x) {
-	return Nan::New<v8::Int32>(static_cast<int32_t>(x));
+v8::Local<v8::Value> getUInt64Number(long unsigned int hi, long unsigned int lo) {
+		long unsigned int size = lo | (hi << 32);
+		return Nan::New<v8::Number>(static_cast<double>(size));
 }
 
 v8::Local<v8::Value> timespecToMilliseconds(__u32 seconds) {
-    return Nan::New<v8::Number>(static_cast<double>(seconds) * 1000);
+		return Nan::New<v8::Number>(static_cast<double>(seconds) * 1000);
 }
 
 NAN_METHOD(fstat_) {
@@ -844,16 +841,16 @@ NAN_METHOD(fstat_) {
 	auto Stats = info[2].As<v8::Function>();
 	auto *callback = new Callback(info[3].As<v8::Function>());
 	v8::Local<v8::Value> statsArgs[] = {
-		castInt32(0),   // dev
-		castInt32(file->inode.i_mode),
-		castInt32(file->inode.i_links_count),
-		castInt32(file->inode.i_uid),
-		castUint32(file->inode.i_gid),
-		castUint32(0),  // rdev
-		castInt32(file->fs->blocksize),
-		castInt32(file->ino),
-		castUint32(file->inode.i_size),
-		castUint32(file->inode.i_blocks),
+		Nan::New<v8::Number>(0),   // dev
+		Nan::New<v8::Number>(file->inode.i_mode),
+		Nan::New<v8::Number>(file->inode.i_links_count),
+		Nan::New<v8::Number>(file->inode.i_uid),
+		Nan::New<v8::Number>(file->inode.i_gid),
+		Nan::New<v8::Number>(0),  // rdev
+		Nan::New<v8::Number>(file->fs->blocksize),
+		Nan::New<v8::Number>(file->ino),
+		getUInt64Number(file->inode.i_size_high, file->inode.i_size),
+		Nan::New<v8::Number>(file->inode.i_blocks),
 		timespecToMilliseconds(file->inode.i_atime),
 		timespecToMilliseconds(file->inode.i_mtime),
 		timespecToMilliseconds(file->inode.i_ctime),
