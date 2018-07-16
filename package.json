@@ -1,6 +1,6 @@
 {
   "name": "ext2fs",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "NodeJS native bindings to the libext2fs for cross-platform ext filesystem handling",
   "author": "Petros Angelatos <petrosagg@resin.io>",
   "contributors": [
@@ -13,7 +13,8 @@
   "scripts": {
     "upload": "cross-env prebuild -t $npm_config_node_version -u $NODE_PRE_GYP_GITHUB_TOKEN --include-regex \"bindings\\.node$\"",
     "upload-win": "prebuild -t %npm_config_node_version% -u %NODE_PRE_GYP_GITHUB_TOKEN% --include-regex \"bindings\\.node$\"",
-    "upload-electron": "cross-env prebuild --runtime electron -t 2.0.3 -t 1.7.15 -u $NODE_PRE_GYP_GITHUB_TOKEN --include-regex 'bindings\\.node$'",
+    "upload-electron": "cross-env prebuild --runtime electron -t 2.0.3 -t 1.7.15 -u $NODE_PRE_GYP_GITHUB_TOKEN --include-regex \"bindings\\.node$\"",
+    "upload-electron-win": "prebuild --runtime electron -t 2.0.3 -t 1.7.15 -u %NODE_PRE_GYP_GITHUB_TOKEN% --include-regex \"bindings\\.node$\"",
     "build": "node-gyp rebuild",
     "pretest": "eslint lib test",
     "test": "mocha",
