@@ -1,3 +1,4 @@
+'use strict';
 /*global it describe*/
 /*eslint no-undef: "error"*/
 
