@@ -440,9 +440,9 @@ class ReadWorker : public AsyncWorker {
 			file = get_file(info);
 			flags = get_flags(info);
 			buffer = (char*) node::Buffer::Data(info[2]);
-			offset = static_cast<unsigned int>(info[3]->IntegerValue());  // buffer offset
+			offset = static_cast<unsigned long long>(info[3]->IntegerValue());  // buffer offset
 			length = static_cast<unsigned int>(info[4]->IntegerValue());
-			position = static_cast<unsigned int>(info[5]->IntegerValue());  // file offset
+			position = static_cast<unsigned long long>(info[5]->IntegerValue());  // file offset
 		}
 
 		void Execute () {
@@ -477,8 +477,8 @@ class ReadWorker : public AsyncWorker {
 		ext2_file_t file;
 		unsigned int flags;
 		char *buffer;
-		unsigned int offset;
-		unsigned int length;
+		unsigned long long offset;
+		unsigned long long length;
 		int position;
 		unsigned int got;
 };
@@ -491,9 +491,9 @@ class WriteWorker : public AsyncWorker {
 			file = get_file(info);
 			flags = get_flags(info);
 			buffer = static_cast<char*>(node::Buffer::Data(info[2]));
-			offset = static_cast<unsigned int>(info[3]->IntegerValue());  // buffer offset
+			offset = static_cast<unsigned long long>(info[3]->IntegerValue());  // buffer offset
 			length = static_cast<unsigned int>(info[4]->IntegerValue());
-			position = static_cast<unsigned int>(info[5]->IntegerValue());  // file offset
+			position = static_cast<unsigned long long>(info[5]->IntegerValue());  // file offset
 		}
 
 		void Execute () {
@@ -531,8 +531,8 @@ class WriteWorker : public AsyncWorker {
 		ext2_file_t file;
 		unsigned int flags;
 		char *buffer;
-		unsigned int offset;
-		unsigned int length;
+		unsigned long long offset;
+		unsigned long long length;
 		int position;
 		unsigned int written;
 };

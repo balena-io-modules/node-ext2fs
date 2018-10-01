@@ -35,12 +35,12 @@ static void js_request(void *_s) {
 	HandleScope scope;
 
 	v8::Local<v8::Value> buffer;
-	unsigned int offset, size;
+	unsigned long long offset, size;
 	auto s = reinterpret_cast<request_state_t*>(_s);
 
 	auto request_cb = static_cast<Callback*>(s->channel->private_data);
 
-	offset = static_cast<unsigned int>(s->block * s->channel->block_size);
+	offset = static_cast<unsigned long long>(s->block * s->channel->block_size);
 	size = (s->count < 0) ? -s->count : (s->count * s->channel->block_size);
 
 	if (s->data) {
