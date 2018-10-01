@@ -18,8 +18,6 @@
     "build": "node-gyp rebuild",
     "pretest": "eslint lib test",
     "test": "mocha",
-    "publish-please": "publish-please",
-    "prepublish": "publish-please guard",
     "install": "prebuild-install || node-gyp rebuild"
   },
   "dependencies": {
@@ -34,8 +32,7 @@
     "cross-env": "^5.1.4",
     "eslint": "^3.19.0",
     "mocha": "^3.2.0",
-    "prebuild": "^7.4.0",
-    "publish-please": "^2.2.0"
+    "prebuild": "^7.4.0"
   },
   "homepage": "https://github.com/resin-io/node-ext2fs#readme",
   "repository": {
