@@ -21,7 +21,7 @@ environment:
 install:
   - ps: Install-Product node $env:nodejs_version x64
   - choco install mingw
-  - npm install -g --production windows-build-tools
+  - npm install -g --production windows-build-tools@^3.1.0
   # Unlike travis, appveyor doesn't clone --recursive, so we have to:
   - git submodule update --init --recursive
 
