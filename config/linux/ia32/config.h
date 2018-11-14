@@ -378,7 +378,7 @@
 /* #undef HAVE_SA_LEN */
 
 /* Define to 1 if you have the `secure_getenv' function. */
-#define HAVE_SECURE_GETENV 1
+//#define HAVE_SECURE_GETENV 1
 
 /* Define to 1 if you have the <semaphore.h> header file. */
 #define HAVE_SEMAPHORE_H 1
