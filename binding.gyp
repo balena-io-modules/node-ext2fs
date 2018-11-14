@@ -139,6 +139,7 @@
 						'deps/e2fsprogs/lib/ext2fs/symlink.c',
 						'deps/e2fsprogs/lib/ext2fs/tdb.c',
 						'deps/e2fsprogs/lib/ext2fs/unlink.c',
+						'deps/e2fsprogs/lib/ext2fs/unix_io.c',
 						'deps/e2fsprogs/lib/ext2fs/valid_blk.c',
 						'deps/e2fsprogs/lib/ext2fs/version.c',
 						'deps/e2fsprogs/lib/ext2fs/write_bb_file.c',
