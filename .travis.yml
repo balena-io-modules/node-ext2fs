@@ -31,4 +31,4 @@ deploy:
   on:
     # Deploys happen for all tagged releases
     tags: true
-    repo: resin-io/node-ext2fs
+    repo: balena-io/node-ext2fs
