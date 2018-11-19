@@ -1,7 +1,7 @@
 node-ext2fs
 =========
 ### NodeJS native bindings to the linux ext{2,3,4} filesystem library
-[![Build Status](https://travis-ci.org/resin-io/node-ext2fs.svg?branch=master)](https://travis-ci.org/resin-io/node-ext2fs)
+[![Build Status](https://travis-ci.org/balena-io/node-ext2fs.svg?branch=master)](https://travis-ci.org/balena-io/node-ext2fs)
 
 node-ext2fs uses the [e2fsprogs](https://github.com/tytso/e2fsprogs) project to
 provide access to ext filesystem from NodeJS in a cross-platform way.
@@ -142,5 +142,5 @@ License
 node-ext2fs is free software, and may be redistributed under the terms specified
 in the [license].
 
-[github-issue]: https://github.com/resin-io/node-ext2fs/issues/new
-[license]: https://github.com/resin-io/node-ext2fs/blob/master/LICENSE
+[github-issue]: https://github.com/balena-io/node-ext2fs/issues/new
+[license]: https://github.com/balena-io/node-ext2fs/blob/master/LICENSE
