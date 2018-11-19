@@ -2,10 +2,10 @@
   "name": "ext2fs",
   "version": "1.0.20",
   "description": "NodeJS native bindings to the libext2fs for cross-platform ext filesystem handling",
-  "author": "Petros Angelatos <petrosagg@resin.io>",
+  "author": "Petros Angelatos <petrosagg@balena.io>",
   "contributors": [
-    "Alexis Svinartchouk <alexis@resin.io>",
-    "Petros Angelatos <petrosagg@resin.io>"
+    "Alexis Svinartchouk <alexis@balena.io>",
+    "Petros Angelatos <petrosagg@balena.io>"
   ],
   "license": "Apache-2.0",
   "main": "index.js",
@@ -34,10 +34,10 @@
     "mocha": "^5.2.0",
     "prebuild": "^8.1.2"
   },
-  "homepage": "https://github.com/resin-io/node-ext2fs#readme",
+  "homepage": "https://github.com/balena-io/node-ext2fs#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/resin-io/node-ext2fs.git"
+    "url": "git+https://github.com/balena-io/node-ext2fs.git"
   },
   "keywords": [
     "extfs",
@@ -49,6 +49,6 @@
     "fs"
   ],
   "bugs": {
-    "url": "https://github.com/resin-io/node-ext2fs/issues"
+    "url": "https://github.com/balena-io/node-ext2fs/issues"
   }
 }
