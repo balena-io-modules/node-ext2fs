@@ -168,7 +168,17 @@
 			],
 
 			'conditions': [
-				['OS=="win"', {
+				['OS=="mac"', {
+					"xcode_settings": {
+						"OTHER_CPLUSPLUSFLAGS": [
+							"-stdlib=libc++"
+						],
+						"OTHER_LDFLAGS": [
+							"-stdlib=libc++"
+						]
+					}
+				},
+				'OS=="win"', {
 					"libraries": [
 						"../deps/e2fsprogs/lib/ext2fs/libext2fs.a",
 					],
