@@ -22,7 +22,7 @@ Installation
 
 To install `node-ext2fs` you need to have gcc and make available to your
 environment. For Linux and Mac having a working node-gyp installation is
-enough. To install on windows, you have to install MingW64 and make sure
+enough. To install on Windows, you have to install MingW64 and make sure
 `mingw32-make` and `gcc` are available in your Powershell or cmd.exe terminal.
 
 Simply compile and install `node-ext2fs` using `npm`:
@@ -49,7 +49,9 @@ const ext2fs = require('ext2fs');
 const filedisk = require('file-disk');
 const fs = require('fs');
 
-const fd = fs.openSync('/path/to/ext4_filesystem.img', 'r+');
+const path = '/path/to/ext4_filesystem.img';
+
+const fd = fs.openSync(path, 'r+');
 const disk = new filedisk.FileDisk(fd);
 
 ext2fs.mount(disk, function(err, filesystem) {
@@ -96,7 +98,7 @@ const Promise = require('bluebird')
 const ext2fs = Promise.promisifyAll(require('ext2fs'));
 const filedisk = require('file-disk');
 
-const path = 'test/fixtures/ext2.img';
+const path = '/path/to/ext4_filesystem.img';
 
 Promise.using(filedisk.openFile(path, 'r+'), function(fd) {
 	const disk = new filedisk.FileDisk(fd);
@@ -104,7 +106,7 @@ Promise.using(filedisk.openFile(path, 'r+'), function(fd) {
 		filesystem = Promise.promisifyAll(filesystem);
 		// filesystem behaves like node's fs
 		console.log('Mounted filesystem successfully');
-		return filesystem.readFileAsync('/1', 'utf8')
+		return filesystem.readFileAsync('/some_file', 'utf8')
 		.then(function(contents) {
 			console.log('contents:', contents);
 			return ext2fs.trimAsync(filesystem);
