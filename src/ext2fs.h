@@ -15,7 +15,10 @@ typedef uint32_t ext2_off_t;
 typedef uint8_t __u8;
 typedef uint16_t __u16;
 typedef uint32_t __u32;
+// __u64 is defined in /usr/include/asm-generic/int-ll64.h on arm64
+#if !defined(__aarch64__)
 typedef uint64_t __u64;
+#endif
 
 typedef __u64 ext2_off64_t;
 
