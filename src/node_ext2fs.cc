@@ -39,18 +39,20 @@ extern "C" {
 
 ext2_filsys get_filesystem(NAN_METHOD_ARGS_TYPE info) {
 	return static_cast<ext2_filsys>(
-		info[0]->ToObject().As<v8::External>()->Value()
+		Nan::To<v8::Object>(info[0]).ToLocalChecked().As<v8::External>()->Value()
 	);
 }
 
 ext2_file_t get_file(NAN_METHOD_ARGS_TYPE info) {
 	return static_cast<ext2_file_t>(
-		info[0]->ToObject().As<v8::External>()->Value()
+		Nan::To<v8::Object>(info[0]).ToLocalChecked().As<v8::External>()->Value()
 	);
 }
 
 unsigned int get_flags(NAN_METHOD_ARGS_TYPE info) {
-	return static_cast<unsigned int>(info[1]->IntegerValue());
+	return static_cast<unsigned int>(
+		Nan::To<int64_t>(info[1]).FromJust()
+	);
 }
 
 std::string get_path(NAN_METHOD_ARGS_TYPE info) {
@@ -306,8 +308,8 @@ class OpenWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			fs = get_filesystem(info);
 			path = get_path(info);
-			flags = static_cast<unsigned int>(info[2]->IntegerValue());
-			mode = static_cast<unsigned int>(info[3]->IntegerValue());
+			flags = static_cast<unsigned int>(Nan::To<int64_t>(info[2]).FromJust());
+			mode = static_cast<unsigned int>(Nan::To<int64_t>(info[3]).FromJust());
 		}
 
 		void Execute () {
@@ -440,9 +442,9 @@ class ReadWorker : public AsyncWorker {
 			file = get_file(info);
 			flags = get_flags(info);
 			buffer = (char*) node::Buffer::Data(info[2]);
-			offset = static_cast<unsigned long long>(info[3]->IntegerValue());  // buffer offset
-			length = static_cast<unsigned int>(info[4]->IntegerValue());
-			position = static_cast<unsigned long long>(info[5]->IntegerValue());  // file offset
+			offset = static_cast<unsigned long long>(Nan::To<int64_t>(info[3]).FromJust());  // buffer offset
+			length = static_cast<unsigned int>(Nan::To<int64_t>(info[4]).FromJust());
+			position = static_cast<unsigned long long>(Nan::To<int64_t>(info[5]).FromJust());  // file offset
 		}
 
 		void Execute () {
@@ -491,9 +493,9 @@ class WriteWorker : public AsyncWorker {
 			file = get_file(info);
 			flags = get_flags(info);
 			buffer = static_cast<char*>(node::Buffer::Data(info[2]));
-			offset = static_cast<unsigned long long>(info[3]->IntegerValue());  // buffer offset
-			length = static_cast<unsigned int>(info[4]->IntegerValue());
-			position = static_cast<unsigned long long>(info[5]->IntegerValue());  // file offset
+			offset = static_cast<unsigned long long>(Nan::To<int64_t>(info[3]).FromJust());  // buffer offset
+			length = static_cast<unsigned int>(Nan::To<int64_t>(info[4]).FromJust());
+			position = static_cast<unsigned long long>(Nan::To<int64_t>(info[5]).FromJust());  // file offset
 		}
 
 		void Execute () {
@@ -544,7 +546,7 @@ class ChModWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			file = get_file(info);
 			flags = get_flags(info);
-			mode = static_cast<unsigned int>(info[2]->IntegerValue());
+			mode = static_cast<unsigned int>(Nan::To<int64_t>(info[2]).FromJust());
 		}
 
 		void Execute () {
@@ -582,8 +584,8 @@ class ChOwnWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			file = get_file(info);
 			flags = get_flags(info);
-			uid = static_cast<unsigned int>(info[2]->IntegerValue());
-			gid = static_cast<unsigned int>(info[3]->IntegerValue());
+			uid = static_cast<unsigned int>(Nan::To<int64_t>(info[2]).FromJust());
+			gid = static_cast<unsigned int>(Nan::To<int64_t>(info[3]).FromJust());
 		}
 
 		void Execute () {
@@ -772,7 +774,7 @@ class MkDirWorker : public AsyncWorker {
 		: AsyncWorker(callback) {
 			fs = get_filesystem(info);
 			path = get_path(info);
-			mode = static_cast<unsigned int>(info[2]->IntegerValue());
+			mode = static_cast<unsigned int>(Nan::To<int64_t>(info[2]).FromJust());
 		}
 
 		void Execute () {

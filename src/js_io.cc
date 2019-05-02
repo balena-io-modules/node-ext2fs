@@ -23,7 +23,7 @@ static void js_request_done(v8::Local<v8::Value> ret, void* _s) {
 	if (ret->IsNull()) {
 		s->ret = 0;
 	} else {
-		s->ret = static_cast<errcode_t>(ret->IntegerValue());
+		s->ret = static_cast<errcode_t>(Nan::To<int64_t>(ret).FromJust());
 	}
 
 	uv_sem_post(&s->js_sem);
