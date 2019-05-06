@@ -29,7 +29,7 @@ void init_async() {
 	uv_async_init(uv_default_loop(), async, default_loop_entry);
 	uv_mutex_init(&lock);
 	if (!persistent_callback_initialized) {
-		persistent_callback.Reset(New<v8::FunctionTemplate>(callback_wrapper)->GetFunction());
+		persistent_callback.Reset(Nan::GetFunction(Nan::New<v8::FunctionTemplate>(callback_wrapper)).ToLocalChecked());
 		persistent_callback_initialized = true;
 	}
 }
