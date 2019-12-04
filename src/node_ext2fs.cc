@@ -678,8 +678,10 @@ class ReadDirWorker : public AsyncWorker {
 				return;
 			}
 			v8::Local<v8::Array> result = Nan::New<v8::Array>();
+			auto context = Nan::GetCurrentContext();
 			for(auto const& filename: filenames) {
 				result->Set(
+					context,
 					result->Length(),
 					Nan::CopyBuffer(
 						filename.c_str(),
