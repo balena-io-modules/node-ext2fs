@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
-    "eslint": "^3.19.0",
+    "eslint": "^6.7.2",
     "file-disk": "^5.0.0",
     "mocha": "^5.2.0",
     "prebuild": "^8.1.2"
