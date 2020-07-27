@@ -4,11 +4,11 @@
 
 const assert = require('assert');
 const pathModule = require('path');
-const Promise = require('bluebird');
-const filedisk = Promise.promisifyAll(require('file-disk'));
+const Bluebird = require('bluebird');
+const filedisk = require('file-disk');
 const stream = require('stream');
 
-const ext2fs = Promise.promisifyAll(require('..'));
+const ext2fs = Bluebird.promisifyAll(require('..'));
 
 // Each image contains 5 files named 1, 2, 3, 4, 5 and containing
 // 'one\n', 'two\n', 'three\n', 'four\n', 'five\n' respectively.
@@ -39,7 +39,7 @@ function testOnAllDisks(fn) {
 		it(name, function(){
 			this.timeout(5000);
 			const path = pathModule.join(__dirname, 'fixtures', IMAGES[name]);
-			return Promise.using(filedisk.openFile(path, 'r'), function(fd) {
+			return filedisk.withOpenFile(path, 'r', function(fd) {
 				const disk = new filedisk.FileDisk(fd, true, true);
 				// `disk.imageName` will be useful in tests that have different
 				// results depending on the image.
@@ -52,16 +52,16 @@ function testOnAllDisks(fn) {
 
 function testOnAllDisksMount(fn) {
 	return testOnAllDisks(function(disk) {
-		return Promise.using(ext2fs.mountDisposer(disk), function(fs) {
+		return ext2fs.withMountedDisk(disk, {}, function(fs) {
 			// Might be useful to get the disk name
 			fs.disk = disk;
-			return fn(Promise.promisifyAll(fs, { multiArgs: true }));
+			return fn(Bluebird.promisifyAll(fs, { multiArgs: true }));
 		});
 	});
 }
 
 function readStream(stream) {
-	return new Promise(function(resolve, reject) {
+	return new Bluebird(function(resolve, reject) {
 		const chunks = [];
 		stream.on('error', reject);
 		stream.on('close', function(){
@@ -74,7 +74,7 @@ function readStream(stream) {
 }
 
 function waitStream(stream) {
-	return new Promise(function(resolve, reject) {
+	return new Bluebird(function(resolve, reject) {
 		stream.on('error', reject);
 		stream.on('close', resolve);
 	});
@@ -758,7 +758,7 @@ describe('ext2fs', function() {
 		testOnAllDisks(function(disk) {
 			return ext2fs.mountAsync(disk)
 			.then(function(fs) {
-				fs = Promise.promisifyAll(fs, { multiArgs: true });
+				fs = Bluebird.promisifyAll(fs, { multiArgs: true });
 				return fs.openAsync('/1', 'r')
 				.then(function() {
 					return fs.openAsync('/2', 'r');
@@ -804,7 +804,7 @@ describe('ext2fs', function() {
 					assert.strictEqual(err.errno, 9);
 				});
 			});
-			return Promise.all(calls);
+			return Bluebird.all(calls);
 		});
 	});
 
@@ -817,14 +817,13 @@ describe('ext2fs', function() {
 
 	describe('MAX_FD', function() {
 		testOnAllDisks(function(disk) {
-			const disposer = ext2fs.mountDisposer(disk, { MAX_FD: 2 });
-			return Promise.using(disposer, function(fs) {
-				fs = Promise.promisifyAll(fs);
+			return ext2fs.withMountedDisk(disk, { MAX_FD: 2 }, function(fs) {
+				fs = Bluebird.promisifyAll(fs);
 				const files = [
 					openFile(fs, '/1', 'r'),
 					openFile(fs, '/2', 'r')
 				];
-				return Promise.using(files, function() {
+				return Bluebird.using(files, function() {
 					return fs.openAsync('/3', 'r')
 					.then(function() {
 						assert(false);
@@ -844,7 +843,7 @@ describe('ext2fs', function() {
 			for (let i=0; i<20; i++) {
 				promises.push(fs.openAsync('/file_number_' + i, 'w'));
 			}
-			return Promise.all(promises);
+			return Bluebird.all(promises);
 		});
 	});
 
@@ -892,66 +891,34 @@ describe('ext2fs', function() {
 	describe('trim', function() {
 		testOnAllDisks(function(disk) {
 			const blockSize = 512;
-			return Promise.using(ext2fs.mountDisposer(disk), function(fs) {
-				fs = Promise.promisifyAll(fs);
+			return ext2fs.withMountedDisk(disk, {}, function(fs) {
+				fs = Bluebird.promisifyAll(fs);
 				return fs.trimAsync();
 			})
 			.then(function() {
-				return disk.getBlockMap(blockSize, true);  // true is for calculateChecksums
+				return disk.getRanges(blockSize);
 			})
-			.then(function(bmap) {
-				assert.strictEqual(bmap.imageSize, 4194304);
-				assert.strictEqual(bmap.blockSize, blockSize);
-				assert.strictEqual(bmap.blockCount, bmap.imageSize / blockSize);
+			.then(function(ranges) {
 				if (disk.imageName === 'ext2') {
-					assert.strictEqual(
-						bmap.checksum,
-						'a901df1b0db55e5b98cc313a136ea945da60a5738ffcb8aee4111ee8ea12d08f'
-					);
-					assert.strictEqual(bmap.mappedBlockCount, 312);
-					assert.strictEqual(bmap.ranges.length, 3);
-					assert.strictEqual(
-						bmap.ranges[0].checksum,
-						'54bfcc09dbcdcd97e35b072c2056f0c0f9bc9cfbec01e0735236aea2266424de'
-					);
-					assert.strictEqual(
-						bmap.ranges[1].checksum,
-						'3c43be3292a0c5103237a3bb800b42ce45339825355df51776c868ff8ff452ed'
-					);
-					assert.strictEqual(
-						bmap.ranges[2].checksum,
-						'6d89b59b2dfe850352354da6b2a400d2960f08844aece84735a1c5ed990b4b85'
-					);
+					assert.strictEqual(ranges.length, 3);
+					assert.strictEqual(ranges[0].offset, 0);
+					assert.strictEqual(ranges[0].length, 152576);
+					assert.strictEqual(ranges[1].offset, 164864);
+					assert.strictEqual(ranges[1].length, 2048);
+					assert.strictEqual(ranges[2].offset, 3146752);
+					assert.strictEqual(ranges[2].length, 5120);
 				} else if (disk.imageName === 'ext3') {
-					assert.strictEqual(
-						bmap.checksum,
-						'2cdc6d68929de06e7786e046ca503434f1c4ef0009aea0fafd73e08e39293c92'
-					);
-					assert.strictEqual(bmap.mappedBlockCount, 2370);
-					assert.strictEqual(bmap.ranges.length, 2);
-					assert.strictEqual(
-						bmap.ranges[0].checksum,
-						'36e8cd5f6f193af17acb34807e89c5b00407bbc13a52c8177b5af2ef536a2929'
-					);
-					assert.strictEqual(
-						bmap.ranges[1].checksum,
-						'6d89b59b2dfe850352354da6b2a400d2960f08844aece84735a1c5ed990b4b85'
-					);
+					assert.strictEqual(ranges.length, 2);
+					assert.strictEqual(ranges[0].offset, 0);
+					assert.strictEqual(ranges[0].length, 1208320);
+					assert.strictEqual(ranges[1].offset, 3146752);
+					assert.strictEqual(ranges[1].length, 5120);
 				} else if (disk.imageName === 'ext4') {
-					assert.strictEqual(
-						bmap.checksum,
-						'd963ae8a7cfbce425e9450fc8f18fadda24d7328b88de3fd821557be7bbf6918'
-					);
-					assert.strictEqual(bmap.mappedBlockCount, 2370);
-					assert.strictEqual(bmap.ranges.length, 2);
-					assert.strictEqual(
-						bmap.ranges[0].checksum,
-						'3997d2475785686abaaf122463224d167df1b54341cfe69e63f2eece1b9c7d1c'
-					);
-					assert.strictEqual(
-						bmap.ranges[1].checksum,
-						'6d89b59b2dfe850352354da6b2a400d2960f08844aece84735a1c5ed990b4b85'
-					);
+					assert.strictEqual(ranges.length, 2);
+					assert.strictEqual(ranges[0].offset, 0);
+					assert.strictEqual(ranges[0].length, 1208320);
+					assert.strictEqual(ranges[1].offset, 3146752);
+					assert.strictEqual(ranges[1].length, 5120);
 				}
 			});
 		});
