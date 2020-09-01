@@ -31,6 +31,7 @@ Simply compile and install `node-ext2fs` using `npm`:
 $ npm install ext2fs
 ```
 
+
 Usage
 -----
 
@@ -72,6 +73,24 @@ async function main() {
         }
 }
 
+```
+
+Building
+--------
+
+`node-ext2fs` uses a git submodule for [e2fsprogs](https://github.com/tytso/e2fsprogs). 
+This means if you wish to build it, **you have to init/update the git submodule first**. 
+
+``` bash
+$ git submodule update --init --recursive
+```
+
+For more information on git submodules, see https://stackoverflow.com/questions/1030169/easy-way-to-pull-latest-of-all-git-submodules.
+
+Once the submodule has been initialized/pulled, simply run:
+
+```
+npm run build
 ```
 
 Support
