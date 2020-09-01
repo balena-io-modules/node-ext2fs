@@ -7,10 +7,11 @@ else
     Q =
 endif
 
-ifeq ($(npm_config_target_arch),ia32)
+ARCH:=$(or $(npm_config_target_arch),$(shell node -e "console.log(os.arch())"))
+ifeq ($(ARCH),ia32)
 CC = i686-w64-mingw32-gcc
 AR = i686-w64-mingw32-gcc-ar
-else ifeq ($(npm_config_target_arch),x64)
+else ifeq ($(ARCH),x64)
 CC = x86_64-w64-mingw32-gcc
 AR = x86_64-w64-mingw32-gcc-ar
 else
@@ -100,23 +101,23 @@ OBJS= alloc.o \
 all: directory libext2fs.a
 
 directory:
-	mkdir -p $(npm_config_target_arch)
+	mkdir -p $(ARCH)
 
 # We need these objects from libgcc for windows 32bit builds
-$(npm_config_target_arch)/_umoddi3.o:
+$(ARCH)/_umoddi3.o:
 	$(E) "	EXTRACT_OBJ $@"
 	$(Q) $(AR) x  "$(shell $(CC) --print-file-name=libgcc.a)" _umoddi3.o
-	mv _umoddi3.o $(npm_config_target_arch)/_umoddi3.o
+	mv _umoddi3.o $(ARCH)/_umoddi3.o
 
-$(npm_config_target_arch)/_udivdi3.o:
+$(ARCH)/_udivdi3.o:
 	$(E) "	EXTRACT_OBJ $@"
 	$(Q) $(AR) x "$(shell $(CC) --print-file-name=libgcc.a)" _udivdi3.o
-	mv _udivdi3.o $(npm_config_target_arch)/_udivdi3.o
+	mv _udivdi3.o $(ARCH)/_udivdi3.o
 
-libext2fs.a: $(addprefix $(npm_config_target_arch)/,$(OBJS) _umoddi3.o _udivdi3.o)
+libext2fs.a: $(addprefix $(ARCH)/,$(OBJS) _umoddi3.o _udivdi3.o)
 	$(E) "	GEN_LIB $@"
-	$(Q) $(AR) rc $@ $(addprefix $(npm_config_target_arch)/,$(OBJS) _udivdi3.o _umoddi3.o)
+	$(Q) $(AR) rc $@ $(addprefix $(ARCH)/,$(OBJS) _udivdi3.o _umoddi3.o)
 
-$(npm_config_target_arch)/%.o: %.c
+$(ARCH)/%.o: %.c
 	$(E) "	CC $<"
 	$(Q) $(CC) $(CFLAGS) -c $< -o $@
