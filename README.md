@@ -25,7 +25,16 @@ environment. For Linux and Mac having a working node-gyp installation is
 enough. To install on windows, you have to install MingW64 and make sure
 `mingw32-make` and `gcc` are available in your Powershell or cmd.exe terminal.
 
-Simply compile and install `node-ext2fs` using `npm`:
+`node-ext2fs` uses a git submodule for [e2fsprogs](https://github.com/tytso/e2fsprogs). 
+This means **you have to init/update the git submodule before you can build**. 
+
+``` bash
+$ git submodule update --init --recursive
+```
+
+For more information on git submodules, see https://stackoverflow.com/questions/1030169/easy-way-to-pull-latest-of-all-git-submodules.
+
+Once the submodule has been initialized/pulled, simply compile and install `node-ext2fs` using `npm`:
 
 ``` bash
 $ npm install ext2fs
