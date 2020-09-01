@@ -7,11 +7,20 @@ else
     Q =
 endif
 
+ifeq ($(npm_config_target_arch),ia32)
+CC = i686-w64-mingw32-gcc
+AR = i686-w64-mingw32-gcc-ar
+else ifeq ($(npm_config_target_arch),x64)
+CC = x86_64-w64-mingw32-gcc
+AR = x86_64-w64-mingw32-gcc-ar
+else
+CC = gcc
+AR = ar
+endif
+
 srcdir=../..
 top_srcdir=../../../..
 
-AR = ar
-CC = gcc
 CFLAGS = -g -O3 -fPIC -DHAVE_CONFIG_H \
 	   -I$(srcdir)/lib \
 	   -I$(top_srcdir)/config/common \
@@ -88,21 +97,26 @@ OBJS= alloc.o \
 	valid_blk.o \
 	version.o
 
-all: libext2fs.a
+all: directory libext2fs.a
+
+directory:
+	mkdir -p $(npm_config_target_arch)
 
 # We need these objects from libgcc for windows 32bit builds
-_umoddi3.o:
+$(npm_config_target_arch)/_umoddi3.o:
 	$(E) "	EXTRACT_OBJ $@"
-	$(Q) $(AR) x "$(shell gcc --print-file-name=libgcc.a)" $@
+	$(Q) $(AR) x  "$(shell $(CC) --print-file-name=libgcc.a)" _umoddi3.o
+	mv _umoddi3.o $(npm_config_target_arch)/_umoddi3.o
 
-_udivdi3.o:
+$(npm_config_target_arch)/_udivdi3.o:
 	$(E) "	EXTRACT_OBJ $@"
-	$(Q) $(AR) x "$(shell gcc --print-file-name=libgcc.a)" $@
+	$(Q) $(AR) x "$(shell $(CC) --print-file-name=libgcc.a)" _udivdi3.o
+	mv _udivdi3.o $(npm_config_target_arch)/_udivdi3.o
 
-libext2fs.a: $(OBJS) _umoddi3.o _udivdi3.o
+libext2fs.a: $(addprefix $(npm_config_target_arch)/,$(OBJS) _umoddi3.o _udivdi3.o)
 	$(E) "	GEN_LIB $@"
-	$(Q) $(AR) rc $@ $(OBJS) _udivdi3.o _umoddi3.o
+	$(Q) $(AR) rc $@ $(addprefix $(npm_config_target_arch)/,$(OBJS) _udivdi3.o _umoddi3.o)
 
-%.o: %.c
+$(npm_config_target_arch)/%.o: %.c
 	$(E) "	CC $<"
 	$(Q) $(CC) $(CFLAGS) -c $< -o $@
