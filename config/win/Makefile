@@ -98,7 +98,7 @@ OBJS= alloc.o \
 	valid_blk.o \
 	version.o
 
-all: directory libext2fs.a
+all: directory $(ARCH)/libext2fs.a
 
 directory:
 	mkdir -p $(ARCH)
@@ -114,7 +114,7 @@ $(ARCH)/_udivdi3.o:
 	$(Q) $(AR) x "$(shell $(CC) --print-file-name=libgcc.a)" _udivdi3.o
 	mv _udivdi3.o $(ARCH)/_udivdi3.o
 
-libext2fs.a: $(addprefix $(ARCH)/,$(OBJS) _umoddi3.o _udivdi3.o)
+$(ARCH)/libext2fs.a: $(addprefix $(ARCH)/,$(OBJS) _umoddi3.o _udivdi3.o)
 	$(E) "	GEN_LIB $@"
 	$(Q) $(AR) rc $@ $(addprefix $(ARCH)/,$(OBJS) _udivdi3.o _umoddi3.o)
 
