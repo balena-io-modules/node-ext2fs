@@ -57,7 +57,7 @@
 								"deps/e2fsprogs/"
 							],
 							'outputs': [
-								"deps/e2fsprogs/lib/ext2fs/libext2fs.a"
+								"deps/e2fsprogs/lib/ext2fs/<(target_arch)/libext2fs.a"
 							],
 							'action': [ 'mingw32-make', '-C', 'deps/e2fsprogs/lib/ext2fs' ]
 						}
@@ -180,7 +180,7 @@
 				},
 				'OS=="win"', {
 					"libraries": [
-						"../deps/e2fsprogs/lib/ext2fs/libext2fs.a",
+						"../deps/e2fsprogs/lib/ext2fs/<(target_arch)/libext2fs.a",
 					],
 				}]
 			],
