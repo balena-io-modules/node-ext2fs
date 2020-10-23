@@ -52,7 +52,7 @@ function testOnAllDisks(fn) {
 
 function testOnAllDisksMount(fn) {
 	return testOnAllDisks(function(disk) {
-		return ext2fs.withMountedDisk(disk, {}, function(fs) {
+		return ext2fs.withMountedDisk(disk, 0, function(fs) {
 			// Might be useful to get the disk name
 			fs.disk = disk;
 			return fn(Bluebird.promisifyAll(fs, { multiArgs: true }));
@@ -362,7 +362,7 @@ describe('ext2fs', function() {
 					assert(false);
 				})
 				.catch(function(err) {
-					assert.strictEqual(err.errno, 2);
+					assert.strictEqual(err.errno, 44);
 					assert.strictEqual(err.code, 'ENOENT');
 				});
 		});
@@ -375,7 +375,7 @@ describe('ext2fs', function() {
 					assert(false);
 				})
 				.catch(function(err) {
-					assert.strictEqual(err.errno, 20);
+					assert.strictEqual(err.errno, 54);
 					assert.strictEqual(err.code, 'ENOTDIR');
 				});
 		});
@@ -403,7 +403,7 @@ describe('ext2fs', function() {
 				})
 				.then(function() {
 					assert.strictEqual(error.code, 'ENOENT');
-					assert.strictEqual(error.errno, 2);
+					assert.strictEqual(error.errno, 44);
 				});
 		});
 	});
@@ -417,7 +417,7 @@ describe('ext2fs', function() {
 				})
 				.then(function() {
 					assert.strictEqual(error.code, 'ENOTDIR');
-					assert.strictEqual(error.errno, 20);
+					assert.strictEqual(error.errno, 54);
 				});
 		});
 	});
@@ -447,7 +447,7 @@ describe('ext2fs', function() {
 				})
 				.then(function() {
 					assert.strictEqual(error.code, 'ENOENT');
-					assert.strictEqual(error.errno, 2);
+					assert.strictEqual(error.errno, 44);
 				});
 		});
 	});
@@ -461,7 +461,7 @@ describe('ext2fs', function() {
 				})
 				.then(function() {
 					assert.strictEqual(error.code, 'EISDIR');
-					assert.strictEqual(error.errno, 21);
+					assert.strictEqual(error.errno, 31);
 				});
 		});
 	});
@@ -481,7 +481,7 @@ describe('ext2fs', function() {
 				})
 				.then(function() {
 					assert.strictEqual(error.code, 'EACCES');
-					assert.strictEqual(error.errno, 13);
+					assert.strictEqual(error.errno, 2);
 				});
 		});
 	});
@@ -532,7 +532,7 @@ describe('ext2fs', function() {
 							error = err;
 						})
 						.then(function() {
-							assert.strictEqual(error.errno, 9);
+							assert.strictEqual(error.errno, 8);
 							assert.strictEqual(error.code, 'EBADF');
 							return fs.closeAsync(fd);
 						});
@@ -550,7 +550,7 @@ describe('ext2fs', function() {
 							error = err;
 						})
 						.then(function() {
-							assert.strictEqual(error.errno, 9);
+							assert.strictEqual(error.errno, 8);
 							assert.strictEqual(error.code, 'EBADF');
 							return fs.closeAsync(fd);
 						});
@@ -588,7 +588,7 @@ describe('ext2fs', function() {
 					error = err;
 				})
 				.then(function() {
-					assert.strictEqual(error.errno, 2);
+					assert.strictEqual(error.errno, 44);
 					assert.strictEqual(error.code, 'ENOENT');
 				});
 		});
@@ -610,7 +610,7 @@ describe('ext2fs', function() {
 		});
 	});
 
-	describe('fchmod2', function() {
+	describe('fchmod 2', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.openAsync('/1', 'r')
 				.spread(function(fd) {
@@ -720,7 +720,7 @@ describe('ext2fs', function() {
 				})
 				.catch(function(err) {
 					assert.strictEqual(err.code, 'EEXIST');
-					assert.strictEqual(err.errno, 17);
+					assert.strictEqual(err.errno, 20);
 				});
 		});
 	});
@@ -733,7 +733,7 @@ describe('ext2fs', function() {
 				})
 				.catch(function(err) {
 					assert.strictEqual(err.code, 'ENOTDIR');
-					assert.strictEqual(err.errno, 20);
+					assert.strictEqual(err.errno, 54);
 				});
 		});
 	});
@@ -756,7 +756,7 @@ describe('ext2fs', function() {
 
 	describe('close all fds on umount', function() {
 		testOnAllDisks(function(disk) {
-			return ext2fs.mountAsync(disk)
+			return ext2fs.mount(disk)
 				.then(function(fs) {
 					fs = Bluebird.promisifyAll(fs, { multiArgs: true });
 					return fs.openAsync('/1', 'r')
@@ -768,15 +768,10 @@ describe('ext2fs', function() {
 						})
 						.then(function() {
 							// this is the function called before umount
-							return fs.closeAllFileDescriptorsAsync();
+							return fs.closeAllFileDescriptors();
 						})
 						.then(function() {
-							return fs.openAsync('/1', 'r');
-						})
-						.spread(function(fd) {
-							// if all fds were closed, the next fd should be 0
-							assert.strictEqual(fd, 0);
-							return ext2fs.umountAsync(fs);
+							assert.strictEqual(fs.openFiles.size, 0);
 						});
 				});
 		});
@@ -801,39 +796,10 @@ describe('ext2fs', function() {
 					})
 					.catch(function(err) {
 						assert.strictEqual(err.code, 'EBADF');
-						assert.strictEqual(err.errno, 9);
+						assert.strictEqual(err.errno, 8);
 					});
 			});
 			return Bluebird.all(calls);
-		});
-	});
-
-	function openFile(fs, path, mode) {
-		return fs.openAsync(path, mode)
-			.disposer(function(fd) {
-				return fs.closeAsync(fd);
-			});
-	}
-
-	describe('MAX_FD', function() {
-		testOnAllDisks(function(disk) {
-			return ext2fs.withMountedDisk(disk, { MAX_FD: 2 }, function(fs) {
-				fs = Bluebird.promisifyAll(fs);
-				const files = [
-					openFile(fs, '/1', 'r'),
-					openFile(fs, '/2', 'r')
-				];
-				return Bluebird.using(files, function() {
-					return fs.openAsync('/3', 'r')
-						.then(function() {
-							assert(false);
-						})
-						.catch(function(err) {
-							assert.strictEqual(err.code, 'EMFILE');
-							assert.strictEqual(err.errno, 24);
-						});
-				});
-			});
 		});
 	});
 
@@ -873,8 +839,8 @@ describe('ext2fs', function() {
 		});
 	});
 
-	describe('writeFile and readFile with no slash at the beginning', function() {
-		const filename = 'config.txt';
+	describe('writeFile and readFile', function() {
+		const filename = '/config.txt';
 		const content = 'content\n';
 		const encoding = 'utf8';
 		testOnAllDisksMount(function(fs) {
@@ -891,9 +857,9 @@ describe('ext2fs', function() {
 	describe('trim', function() {
 		testOnAllDisks(function(disk) {
 			const blockSize = 512;
-			return ext2fs.withMountedDisk(disk, {}, function(fs) {
+			return ext2fs.withMountedDisk(disk, 0, function(fs) {
 				fs = Bluebird.promisifyAll(fs);
-				return fs.trimAsync();
+				return fs.trim();
 			})
 				.then(function() {
 					return disk.getRanges(blockSize);

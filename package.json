@@ -1,7 +1,7 @@
 {
   "name": "ext2fs",
   "version": "2.0.5",
-  "description": "NodeJS native bindings to the libext2fs for cross-platform ext filesystem handling",
+  "description": "WASM bindings to libext2fs for cross-platform ext filesystem handling",
   "author": "Petros Angelatos <petrosagg@balena.io>",
   "contributors": [
     "Alexis Svinartchouk <alexis@balena.io>",
@@ -9,29 +9,22 @@
   ],
   "license": "Apache-2.0",
   "main": "index.js",
-  "gypfile": true,
+  "files": [
+    "index.js",
+    "lib/**/*.js",
+    "lib/**/*.wasm"
+  ],
   "scripts": {
-    "upload": "cross-env prebuild -t $npm_config_node_version -u $NODE_PRE_GYP_GITHUB_TOKEN --include-regex \"bindings\\.node$\"",
-    "upload-win": "prebuild -t %npm_config_node_version% -u %NODE_PRE_GYP_GITHUB_TOKEN% --include-regex \"bindings\\.node$\"",
-    "upload-electron": "cross-env prebuild --runtime electron -t 2.0.3 -t 1.7.15 -u $NODE_PRE_GYP_GITHUB_TOKEN --include-regex \"bindings\\.node$\"",
-    "upload-electron-win": "prebuild --runtime electron -t 2.0.3 -t 1.7.15 -u %NODE_PRE_GYP_GITHUB_TOKEN% --include-regex \"bindings\\.node$\"",
-    "build": "node-gyp rebuild",
-    "pretest": "eslint lib test",
-    "test": "mocha",
-    "install": "prebuild-install || node-gyp rebuild"
-  },
-  "dependencies": {
-    "bindings": "^1.3.0",
-    "nan": "^2.14.0",
-    "prebuild-install": "^5.2.1"
+    "build": "make -j $(nproc)",
+    "prepare": "npm run build",
+    "pretest": "eslint lib test src/pre.js",
+    "test": "mocha"
   },
   "devDependencies": {
     "bluebird": "^3.7.2",
-    "cross-env": "^5.2.0",
     "eslint": "^7.5.0",
     "file-disk": "^8.0.0",
-    "mocha": "^5.2.0",
-    "prebuild": "^8.1.2"
+    "mocha": "^5.2.0"
   },
   "homepage": "https://github.com/balena-io/node-ext2fs#readme",
   "repository": {
@@ -49,5 +42,6 @@
   ],
   "bugs": {
     "url": "https://github.com/balena-io/node-ext2fs/issues"
-  }
+  },
+  "dependencies": {}
 }
