@@ -87,6 +87,21 @@ function createReadableStreamFromString(s) {
 }
 
 describe('ext2fs', () => {
+	describe('disk errors', () => {
+		testOnAllDisks(async (disk) => {
+			disk.read = () => {
+				throw new Error("can't read");
+			};
+			try {
+				await ext2fs.mount(disk, 0);
+				assert(false);
+			} catch(err) {
+				assert.strictEqual(err.errno, 29);
+				assert.strictEqual(err.code, 'EIO');
+			}
+		});
+	});
+
 	describe('mount, open, read, close, umount', () => {
 		testOnAllDisksMount(async (fs) => {
 			const buffer = Buffer.allocUnsafe(4);
