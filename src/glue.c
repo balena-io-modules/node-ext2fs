@@ -437,7 +437,6 @@ errcode_t node_ext2fs_unlink(
 	const char *path,
 	bool rmdir
 ) {
-	// TODO: test unlink in a directory (not root)
 	if (strlen(path) == 0) {
 		return -ENOENT;
 	}

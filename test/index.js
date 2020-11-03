@@ -502,6 +502,24 @@ describe('ext2fs', function() {
 		});
 	});
 
+	describe.only('unlink in a directory that is not root', function() {
+		testOnAllDisksMount(async (fs) => {
+			await fs.mkdirAsync('/new-folder-2');
+			const [files] = await fs.readdirAsync('/');
+			files.sort();
+			assert.deepEqual(
+				files,
+				[ '1', '2', '3', '4', '5', 'lost+found', 'new-folder-2' ]
+			);
+			await fs.writeFileAsync('/new-folder-2/filename', 'some-data');
+			const [files2] = await fs.readdirAsync('/new-folder-2');
+			assert.deepEqual(files2, ['filename']);
+			await fs.unlinkAsync('/new-folder-2/filename');
+			const [files3] = await fs.readdirAsync('/new-folder-2', 'utf8');
+			assert.deepEqual(files3, []);
+		});
+	});
+
 	describe('mkdir specific mode', function() {
 		testOnAllDisksMount(function(fs) {
 			return fs.mkdirAsync('/new-folder', 0o467)
