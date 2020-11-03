@@ -2,9 +2,10 @@
 /*global it describe*/
 
 const assert = require('assert');
-const pathModule = require('path');
 const Bluebird = require('bluebird');
 const filedisk = require('file-disk');
+const { createReadStream } = require('fs');
+const pathModule = require('path');
 const stream = require('stream');
 
 const ext2fs = require('..');
@@ -58,12 +59,16 @@ function testOnAllDisksMount(fn) {
 	});
 }
 
-function readStream(stream) {
+function readStream(stream, buffer = false) {
 	return new Promise((resolve, reject) => {
 		const chunks = [];
 		stream.on('error', reject);
 		stream.on('close', () => {
-			resolve(chunks.join(''));
+			if (buffer) {
+				resolve(Buffer.concat(chunks));
+			} else {
+				resolve(chunks.join(''));
+			}
 		});
 		stream.on('data', (chunk) => {
 			chunks.push(chunk);
@@ -99,6 +104,23 @@ describe('ext2fs', () => {
 				assert.strictEqual(err.errno, 29);
 				assert.strictEqual(err.code, 'EIO');
 			}
+		});
+	});
+
+	describe('offset', () => {
+		it('offset', async () => {
+			const path = pathModule.join(__dirname, 'fixtures', IMAGES['ext4']);
+			const data = await readStream(createReadStream(path), true);
+			const offset = 2048;
+			const buffer = Buffer.allocUnsafe(data.length + offset);
+			data.copy(buffer, offset);
+			const disk = new filedisk.BufferDisk(buffer, true, true);
+			await ext2fs.withMountedDisk(disk, offset, async (fs) => {
+				fs = Bluebird.promisifyAll(fs, { multiArgs: true });
+				const [files] = await fs.readdirAsync('/');
+				files.sort();
+				assert.deepEqual(files, [ '1', '2', '3', '4', '5', 'lost+found' ]);
+			});
 		});
 	});
 
