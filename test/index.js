@@ -457,6 +457,18 @@ describe('ext2fs', () => {
 		});
 	});
 
+	describe('mkdir with slashes at the end of the path', () => {
+		testOnAllDisksMount(async (fs) => {
+			await fs.mkdirAsync(Buffer.from('/new-folder//////'));
+			const [files] = await fs.readdirAsync('/');
+			files.sort();
+			assert.deepEqual(
+				files,
+				[ '1', '2', '3', '4', '5', 'lost+found', 'new-folder' ]
+			);
+		});
+	});
+
 	describe('unlink in a directory that is not /', () => {
 		testOnAllDisksMount(async (fs) => {
 			await fs.mkdirAsync('/new-folder-2');
@@ -466,7 +478,8 @@ describe('ext2fs', () => {
 				files,
 				[ '1', '2', '3', '4', '5', 'lost+found', 'new-folder-2' ]
 			);
-			await fs.writeFileAsync('/new-folder-2/filename', 'some-data');
+			// Also test trailing slashes removal
+			await fs.writeFileAsync('/new-folder-2/filename////', 'some-data');
 			const [files2] = await fs.readdirAsync('/new-folder-2');
 			assert.deepEqual(files2, ['filename']);
 			await fs.unlinkAsync('/new-folder-2/filename');
