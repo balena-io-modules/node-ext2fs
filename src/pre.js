@@ -1,13 +1,28 @@
+/*global Module*/
+
 // Make js objects accessible from C
 
 const objects = new Map();
 
-let objectId = 0;
+let nextId = 0;
+const idPool = [];
+
+function reserveId() {
+	if (idPool.length === 0) {
+		nextId += 1;
+		idPool.push(nextId);
+	}
+	return idPool.shift();
+}
+
+function releaseId(id) {
+	idPool.push(id);
+}
 
 function setObject(obj) {
-	objectId += 1;
-	objects.set(objectId, obj);
-	return objectId;
+	const id = reserveId();
+	objects.set(id, obj);
+	return id;
 }
 Module.setObject = setObject;
 
@@ -18,8 +33,19 @@ Module.getObject = getObject;
 
 function deleteObject(id) {
 	objects.delete(id);
+	releaseId(id);
 }
 Module.deleteObject = deleteObject;
+
+async function withObjectId(obj, fn) {
+	const id = setObject(obj);
+	try {
+		return await fn(id);
+	} finally {
+		deleteObject(id);
+	}
+}
+Module.withObjectId = withObjectId;
 
 // Returns a js Buffer of the memory at `pointer`.
 function getBuffer(pointer, length) {

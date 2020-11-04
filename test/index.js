@@ -679,6 +679,7 @@ describe('ext2fs', () => {
 			// this is the function called before umount
 			await fs.closeAllFileDescriptors();
 			assert.strictEqual(fs.openFiles.size, 0);
+			await ext2fs.umount(fs);
 		});
 	});
 
