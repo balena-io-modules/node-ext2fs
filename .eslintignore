@@ -1,3 +1,2 @@
-lib/internal/fs.js
 lib/fs.js
-lib/binding.js
+lib/libext2fs.js

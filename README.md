@@ -1,10 +1,12 @@
 node-ext2fs
 =========
-### NodeJS native bindings to the linux ext{2,3,4} filesystem library
-[![Build Status](https://travis-ci.org/balena-io/node-ext2fs.svg?branch=master)](https://travis-ci.org/balena-io/node-ext2fs)
+### WASM bindings to the linux ext{2,3,4} filesystem library
 
 node-ext2fs uses the [e2fsprogs](https://github.com/tytso/e2fsprogs) project to
-provide access to ext filesystem from NodeJS in a cross-platform way.
+provide access to ext filesystem from javascript.
+
+The `node-` in `node-ext2fs` is here because it was a native node module until `v3.0.0` (excluded).
+Since `v3.0.0`, it is a WebAssembly module built with [emscripten](https://emscripten.org/).
 
 Some things you can do with this module:
 
@@ -14,21 +16,25 @@ Some things you can do with this module:
 * Create a tar archive from a filesystem image
 * Perform a TRIM operation to obtain discard regions of a filesystem
 
-**Warning: The API exposed by this library is still forming and can change at
-any time!**
-
 Installation
 ------------
 
-To install `node-ext2fs` you need to have gcc and make available to your
-environment. For Linux and Mac having a working node-gyp installation is
-enough. To install on windows, you have to install MingW64 and make sure
-`mingw32-make` and `gcc` are available in your Powershell or cmd.exe terminal.
-
-Simply compile and install `node-ext2fs` using `npm`:
+Simply install `node-ext2fs` using `npm`:
 
 ``` bash
-$ npm install ext2fs
+$ npm install node-ext2fs
+```
+
+Building
+--------
+
+To build `node-ext2fs` you need to have `make` and `emcc` from emscripten >= 2.0.7 available on your
+environment.
+
+Build `node-ext2fs` using `npm`:
+
+``` bash
+$ npm run build
 ```
 
 Usage
@@ -37,7 +43,7 @@ Usage
 Mount a disk image and use the returned `fs` object.
 The fs returned object behaves like node's `fs` except it doesn't provide any
 xxxxSync method.
-You can also issue `DISCARD` requests using the fs `trim(callback)` method.
+You can also issue `DISCARD` requests using the fs `async trim()` method.
 
 See the example below.
 
@@ -55,12 +61,11 @@ async function main() {
         try {
                 await withOpenFile(diskImage, 'r', async (handle) => {
                         const disk = new FileDisk(handle);
-                        await withMountedDisk(disk, { offset }, async (fs) => {
-                                const trim = promisify(fs.trim);
+                        await withMountedDisk(disk, offset, async (fs) => {
                                 const readdir = promisify(fs.readdir);
 				// List files
                                 console.log('readdir', await readdir('/'));
-                                await trim();
+                                await fs.trim();
 				// Show discarded regions
                                 console.log('discarded', disk.getDiscardedChunks());
 				// Show ranges of useful data aligned to 1MiB
@@ -78,20 +83,6 @@ Support
 -------
 
 If you're having any problems, please [raise an issue][github-issue] on GitHub.
-
-### Package fails to install as no pre-built package is available
-
-Node-ext2fs is pre-built for a range of OSs and Node versions, but we don't have perfect coverage
-here yet, and it may fail to install if you're not on an pre-built version and you don't have local
-build tools available.
-
-If you have an issue with this, and your platform is one you feel we should support, please
-[raise an issue][github-issue] on this repo, so we can look at adding your configuration to the
-pre-built versions that works automatically.
-
-In the meantime, you can typically install this package by updating to a newer Node release which
-does have pre-built binaries, or by setting up a local environment so the build is successful (see
-['Installation'](#installation) above).
 
 License
 -------
