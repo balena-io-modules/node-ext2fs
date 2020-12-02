@@ -1,4 +1,14 @@
 - commits:
+    - subject: Fix reading and discarding with offsets > 32 bits
+      hash: b523a8c099bec84c85f3a5393adce88a73c09d7e
+      body: ''
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+  version: 3.0.5
+  date: 2020-12-02T17:40:32.913Z
+- commits:
     - subject: Add versionbot changelog
       hash: e6a0eafb2097577242ef18e8d60f410f6f1a6cff
       body: ''
