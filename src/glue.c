@@ -26,8 +26,10 @@ EM_JS(void, array_push_buffer, (int array_id, char* value, int len), {
 	Module.getObject(array_id).push(buffer);
 });
 
-EM_JS(errcode_t, blk_read, (int disk_id, unsigned long offset, unsigned long size, void *data), {
+EM_JS(errcode_t, blk_read, (int disk_id, short block_size, unsigned long block, unsigned long count, void *data), {
 	return Asyncify.handleAsync(async () => {
+		const offset = block * block_size;
+		const size = count < 0 ? -count : count * block_size;
 		const buffer = Module.getBuffer(data, size);
 		const disk = Module.getObject(disk_id);
 		try {
@@ -39,8 +41,10 @@ EM_JS(errcode_t, blk_read, (int disk_id, unsigned long offset, unsigned long siz
 	});
 });
 
-EM_JS(errcode_t, blk_write, (int disk_id, unsigned long offset, unsigned long size, const void *data), {
+EM_JS(errcode_t, blk_write, (int disk_id, short block_size, unsigned long block, unsigned long count, const void *data), {
 	return Asyncify.handleAsync(async () => {
+		const offset = block * block_size;
+		const size = count < 0 ? -count : count * block_size;
 		const buffer = Module.getBuffer(data, size);
 		const disk = Module.getObject(disk_id);
 		try {
@@ -52,9 +56,11 @@ EM_JS(errcode_t, blk_write, (int disk_id, unsigned long offset, unsigned long si
 	});
 });
 
-EM_JS(errcode_t, discard, (int disk_id, unsigned long offset, unsigned long size), {
+EM_JS(errcode_t, discard, (int disk_id, short block_size, unsigned long block, unsigned long count), {
 	return Asyncify.handleAsync(async () => {
 		const disk = Module.getObject(disk_id);
+		const offset = block * block_size;
+		const size = count < 0 ? -count : count * block_size;
 		try {
 			await disk.discard(offset, size);
 			return 0;
@@ -551,14 +557,6 @@ int get_disk_id(io_channel channel) {
 	return (int)channel->private_data;
 }
 
-unsigned long get_offset(unsigned long block, io_channel channel) {
-	return block * channel->block_size;
-}
-
-unsigned long get_size(int count, io_channel channel) {
-	return (count < 0) ? -count : (count * channel->block_size);
-}
-
 static errcode_t js_open_entry(const char *disk_id_str, int flags, io_channel *channel) {
 	io_channel io = NULL;
 	errcode_t ret = ext2fs_get_mem(sizeof(struct struct_io_channel), &io);
@@ -584,16 +582,12 @@ static errcode_t set_blksize(io_channel channel, int blksize) {
 
 static errcode_t js_read_blk_entry(io_channel channel, unsigned long block, int count, void *data) {
 	int disk_id = get_disk_id(channel);
-	unsigned long offset = get_offset(block, channel);
-	unsigned long size = get_size(count, channel);
-	return blk_read(disk_id, offset, size, data);
+	return blk_read(disk_id, channel->block_size, block, count, data);
 }
 
 static errcode_t js_write_blk_entry(io_channel channel, unsigned long block, int count, const void *data) {
 	int disk_id = get_disk_id(channel);
-	unsigned long offset = get_offset(block, channel);
-	unsigned long size = get_size(count, channel);
-	return blk_write(disk_id, offset, size, data);
+	return blk_write(disk_id, channel->block_size, block, count, data);
 }
 
 static errcode_t js_flush_entry(io_channel channel) {
@@ -611,9 +605,7 @@ static errcode_t js_write_blk64_entry(io_channel channel, unsigned long long blo
 
 static errcode_t js_discard_entry(io_channel channel, unsigned long long block, unsigned long long count) {
 	int disk_id = get_disk_id(channel);
-	unsigned long offset = get_offset(block, channel);
-	unsigned long size = get_size(count, channel);
-	return discard(disk_id, offset, size);
+	return discard(disk_id, channel->block_size, block, count);
 }
 
 static errcode_t js_cache_readahead_entry(io_channel channel, unsigned long long block, unsigned long long count) {
@@ -622,13 +614,12 @@ static errcode_t js_cache_readahead_entry(io_channel channel, unsigned long long
 
 static errcode_t js_zeroout_entry(io_channel channel, unsigned long long block, unsigned long long count) {
 	int disk_id = get_disk_id(channel);
-	unsigned long offset = get_offset(block, channel);
-	unsigned long size = get_size(count, channel);
+	unsigned long long size = (count < 0) ? -count : count * channel->block_size;
 	char *data = malloc(size);
 	memset(data, 0, size);
-	errcode_t ret = blk_write(disk_id, offset, size, data);
+	errcode_t ret = blk_write(disk_id, channel->block_size, block, count, data);
 	if (ret) return ret;
-	return discard(disk_id, offset, size);
+	return discard(disk_id, channel->block_size, block, count);
 }
 
 struct struct_io_manager js_io_manager;
