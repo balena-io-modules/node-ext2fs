@@ -802,4 +802,42 @@ describe('ext2fs', () => {
 			}
 		});
 	});
+
+	describe('symlink', () => {
+		const target = '/usr/bin/echo';
+		const linkpath = '/testlink';
+
+		testOnAllDisksMount(async (fs) => {
+			await fs.symlinkAsync(target, linkpath);
+			const [targetActual] = await fs.readlinkAsync(linkpath);
+
+			assert.strictEqual(targetActual, target);
+		});
+	});
+
+	describe('readlink non-existing', () => {
+		const filename = '/testlink';
+
+		testOnAllDisksMount(async (fs) => {
+			await assert.rejects(async() => {
+				await fs.readlinkAsync(filename);
+			}, (err) => {
+				return err.code === 'ENOENT';
+			});
+		});
+	});
+
+	describe('readlink non-link', () => {
+		const filename = '/testlink';
+
+		testOnAllDisksMount(async (fs) => {
+			await fs.writeFileAsync(filename, 'Hello, World!');
+
+			await assert.rejects(async() => {
+				await fs.readlinkAsync(filename);
+			}, (err) => {
+				return err.code === 'EINVAL';
+			});
+		});
+	});
 });

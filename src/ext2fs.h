@@ -9,6 +9,7 @@ extern "C" {
 typedef long     errcode_t;
 typedef uint32_t dgrp_t;
 typedef uint32_t blk_t;
+typedef uint64_t blk64_t;
 typedef uint32_t ext2_ino_t;
 typedef uint32_t ext2_off_t;
 
@@ -86,6 +87,8 @@ typedef __u64 ext2_off64_t;
 #define LINUX_S_IROTH 00004
 #define LINUX_S_IWOTH 00002
 #define LINUX_S_IXOTH 00001
+
+#define LINUX_S_ISLNK(m)	(((m) & LINUX_S_IFMT) == LINUX_S_IFLNK)
 
 typedef void* io_stats;
 typedef void* ext2fs_inode_bitmap;
@@ -264,6 +267,43 @@ errcode_t ext2fs_link(
 	const char *name,
 	ext2_ino_t ino,
 	int flags
+);
+
+errcode_t ext2fs_symlink(
+	ext2_filsys fs,
+	ext2_ino_t parent,
+	ext2_ino_t ino,
+	const char *name,
+	const char *target
+);
+
+int ext2fs_is_fast_symlink(struct ext2_inode *inode);
+extern errcode_t ext2fs_get_memzero(unsigned long size, void *ptr);
+
+extern errcode_t ext2fs_inline_data_get(
+	ext2_filsys fs,
+	ext2_ino_t ino,
+	struct ext2_inode *inode,
+	void *buf,
+	size_t *size
+);
+
+extern errcode_t ext2fs_bmap2(
+	ext2_filsys fs,
+	ext2_ino_t ino,
+	struct ext2_inode *inode,
+	char *block_buf,
+	int bmap_flags,
+	blk64_t block,
+	int *ret_flags,
+	blk64_t *phys_blk
+);
+
+errcode_t io_channel_read_blk64(
+	io_channel channel,
+	unsigned long long block,
+	int count,
+	void *data
 );
 
 extern errcode_t ext2fs_expand_dir(ext2_filsys fs, ext2_ino_t dir);
