@@ -501,6 +501,104 @@ errcode_t node_ext2fs_chown(
 	return -ret;
 }
 
+errcode_t node_ext2fs_readlink(
+	ext2_filsys fs,
+	const char* path,
+	int array_id
+) {
+	errcode_t ret = 0;
+	struct ext2_inode ei;
+	char* buffer = 0;
+	char* pathname;
+	blk64_t blk;
+
+	ext2_ino_t ino = string_to_inode(fs, path);
+	if (!ino) {
+		return -ENOENT;
+	}
+
+	ret = ext2fs_read_inode (fs, ino, &ei);
+	if (ret) {
+		return -ret;
+	}
+
+	if (!LINUX_S_ISLNK(ei.i_mode)) {
+		return -EINVAL;
+	}
+
+	if (ext2fs_is_fast_symlink(&ei)) {
+		pathname = (char *)&(ei.i_block[0]);
+	}
+	else if (ei.i_flags & EXT4_INLINE_DATA_FL) {
+		ret = ext2fs_get_memzero(ei.i_size, &buffer);
+		if (ret) {
+			return -ret;
+		}
+
+		ret = ext2fs_inline_data_get(fs, ino, &ei, buffer, NULL);
+		if (ret) {
+			ext2fs_free_mem(&buffer);
+			return -ret;
+		}
+
+		pathname = buffer;
+	} else {
+		ret = ext2fs_bmap2(fs, ino, &ei, NULL, 0, 0, NULL, &blk);
+		if (ret) {
+			return -ret;
+		}
+
+		ret = ext2fs_get_mem(fs->blocksize, &buffer);
+		if (ret) {
+			return -ret;
+		}
+
+		ret = io_channel_read_blk64(fs->io, blk, 1, buffer);
+		if (ret) {
+			ext2fs_free_mem(&buffer);
+			return -ret;
+		}
+
+		pathname = buffer;
+	}
+
+	array_push_buffer(array_id, pathname, strlen(pathname));
+
+	if (buffer) {
+		ext2fs_free_mem(&buffer);
+	}
+
+	return ret;
+}
+
+errcode_t node_ext2fs_symlink(
+	ext2_filsys fs,
+	const char* target,
+	const char* path
+) {
+	errcode_t ret = 0;
+	
+	ext2_ino_t parent_ino = get_parent_dir_ino(fs, path);
+	if (parent_ino == 0) {
+		return ENOTDIR;
+	}
+
+	ext2_ino_t ino = string_to_inode(fs, path);
+	if (ino) {
+		return EEXIST;
+	}
+
+	char* filename = get_filename(path);
+	if (filename == NULL) {
+		// This should never happen.
+		return EISDIR;
+	}
+	
+	ret = ext2fs_symlink(fs, parent_ino, ino, filename, target);
+
+	return ret;
+}
+
 errcode_t node_ext2fs_close(ext2_file_t file) {
 	return -ext2fs_file_close(file);
 }
