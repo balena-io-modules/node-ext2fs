@@ -16,6 +16,7 @@
 #define O_TRUNC     00001000
 #define O_APPEND    00002000
 #define O_DIRECTORY 00200000
+#define O_NOFOLLOW 	00400000
 #define O_NOATIME   01000000
 
 // Access js stuff from C
@@ -81,13 +82,16 @@ EM_JS(errcode_t, flush, (int disk_id), {
 		}
 	});
 });
-// ------------------------
 
 // Utils ------------------
-ext2_ino_t string_to_inode(ext2_filsys fs, const char *str) {
+ext2_ino_t string_to_inode(ext2_filsys fs, const char *str, int follow) {
 	ext2_ino_t ino;
 	int retval;
-	retval = ext2fs_namei(fs, EXT2_ROOT_INO, EXT2_ROOT_INO, str, &ino);
+	if (follow) {
+		retval = ext2fs_namei_follow(fs, EXT2_ROOT_INO, EXT2_ROOT_INO, str, &ino);
+	} else {
+		retval = ext2fs_namei(fs, EXT2_ROOT_INO, EXT2_ROOT_INO, str, &ino);
+	}
 	if (retval) {
 		return 0;
 	}
@@ -113,12 +117,12 @@ int copy_filename_to_result(
 
 ext2_ino_t get_parent_dir_ino(ext2_filsys fs, const char* path) {
 	char* last_slash = strrchr(path, '/');
-	if (last_slash == NULL) {
+	if (last_slash == 0) {
 		return 0;
 	}
 	unsigned int parent_len = last_slash - path + 1;
 	char* parent_path = strndup(path, parent_len);
-	ext2_ino_t parent_ino = string_to_inode(fs, parent_path);
+	ext2_ino_t parent_ino = string_to_inode(fs, parent_path, 1);
 	free(parent_path);
 	return parent_ino;
 }
@@ -261,7 +265,7 @@ errcode_t node_ext2fs_mount(int disk_id) {
 		get_js_io_manager(),  // manager
 		&fs                   // ret_fs
 	);
-	if (ret) { 
+	if (ret) {
 		return -ret;
 	}
 	ret = ext2fs_read_bitmaps(fs);
@@ -296,7 +300,7 @@ errcode_t node_ext2fs_trim(ext2_filsys fs) {
 }
 
 errcode_t node_ext2fs_readdir(ext2_filsys fs, char* path, int array_id) {
-	ext2_ino_t ino = string_to_inode(fs, path);
+	ext2_ino_t ino = string_to_inode(fs, path, 1);
 	if (ino == 0) {
 		return -ENOENT;
 	}
@@ -324,8 +328,7 @@ errcode_t node_ext2fs_readdir(ext2_filsys fs, char* path, int array_id) {
 }
 
 long node_ext2fs_open(ext2_filsys fs, char* path, unsigned int flags, unsigned int mode) {
-	// TODO: O_NOFOLLOW, O_SYMLINK
-	ext2_ino_t ino = string_to_inode(fs, path);
+	ext2_ino_t ino = string_to_inode(fs, path, !(flags & O_NOFOLLOW));
 	errcode_t ret;
 	if (ino == 0) {
 		if (!(flags & O_CREAT)) {
@@ -438,6 +441,33 @@ errcode_t node_ext2fs_mkdir(
 	return -ret;
 }
 
+
+errcode_t node_ext2fs_symlink(
+	ext2_filsys fs,
+	char *name,
+	char *target
+) {
+	ext2_ino_t parent_ino;
+	errcode_t		retval;
+
+	parent_ino = get_parent_dir_ino(fs, name);
+	if (parent_ino == 0) {
+		return -ENOTDIR;
+	}
+	char *filename = get_filename(name);
+
+	retval = ext2fs_symlink(fs, parent_ino, 0, filename, target);
+	if (retval == EXT2_ET_DIR_NO_SPACE) {
+		retval = ext2fs_expand_dir(fs, parent_ino);
+		if (retval) {
+			return retval;
+		}
+		retval = ext2fs_symlink(fs, parent_ino, 0, filename, target);
+	}
+
+	return retval;
+}
+
 errcode_t node_ext2fs_unlink(
 	ext2_filsys fs,
 	const char *path,
@@ -446,7 +476,7 @@ errcode_t node_ext2fs_unlink(
 	if (strlen(path) == 0) {
 		return -ENOENT;
 	}
-	ext2_ino_t ino = string_to_inode(fs, path);
+	ext2_ino_t ino = string_to_inode(fs, path, 1);
 	if (ino == 0) {
 		return -ENOENT;
 	}

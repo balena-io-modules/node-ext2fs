@@ -502,6 +502,25 @@ describe('ext2fs', () => {
 		});
 	});
 
+	describe('symlink', () => {
+		const target = '/config.txt';
+		const content = 'content\n';
+		const content2 = 'content2\n';
+		const encoding = 'utf8';
+		const symlink = '/symconfig.txt';
+		testOnAllDisksMount(async (fs) => {
+			await fs.writeFileAsync(target, content, encoding);
+			await fs.symlinkAsync(target, symlink);
+			const [data] = await fs.readFileAsync(symlink, encoding);
+			assert.strictEqual(data, content);
+			const [fd] = await fs.openAsync(symlink, 'w+');
+			await fs.writeAsync(fd, content2);
+			await fs.closeAsync(fd);
+			const [data2] = await fs.readFileAsync(symlink, encoding);
+			assert.strictEqual(data2, content2);
+		});
+	});
+
 	describe('write in a readonly file', () => {
 		testOnAllDisksMount(async (fs) => {
 			const [fd] = await fs.openAsync('/1', 'r');
