@@ -103,6 +103,14 @@ extern errcode_t ext2fs_namei(
 	ext2_ino_t *inode
 );
 
+errcode_t ext2fs_namei_follow(
+	ext2_filsys fs,
+	ext2_ino_t root,
+	ext2_ino_t cwd,
+	const char *name,
+	ext2_ino_t *inode
+);
+
 #define EXT2_ET_NO_MEMORY (2133571398L)
 
 extern errcode_t ext2fs_get_mem(unsigned long size, void *ptr);
@@ -240,6 +248,14 @@ extern errcode_t ext2fs_new_inode(
 	int mode,
 	ext2fs_inode_bitmap map,
 	ext2_ino_t *ret
+);
+
+errcode_t ext2fs_symlink(
+	ext2_filsys fs,
+	ext2_ino_t parent,
+	ext2_ino_t ino,
+	const char *name,
+	const char *target
 );
 
 errcode_t ext2fs_link(
