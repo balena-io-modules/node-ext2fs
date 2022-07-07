@@ -17,7 +17,7 @@
   "scripts": {
     "build": "make -j $(nproc)",
     "prepare": "npm run build",
-    "pretest": "eslint lib test src/pre.js",
+    "pretest": "eslint --fix lib test src/pre.js",
     "test": "mocha"
   },
   "devDependencies": {

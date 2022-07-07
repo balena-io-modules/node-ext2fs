@@ -502,7 +502,9 @@ describe('ext2fs', () => {
 		});
 	});
 
-	describe('symlink', () => {
+	describe('symlink read/write', () => {
+		// symlink content should be the same as the
+		// original file content after reading and writing
 		const target = '/config.txt';
 		const content = 'content\n';
 		const content2 = 'content2\n';
@@ -518,6 +520,8 @@ describe('ext2fs', () => {
 			await fs.closeAsync(fd);
 			const [data2] = await fs.readFileAsync(symlink, encoding);
 			assert.strictEqual(data2, content2);
+			const [stat] = await fs.lstatAsync(symlink);
+			assert.strictEqual(stat.isSymbolicLink(), true);
 		});
 	});
 
