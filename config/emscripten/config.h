@@ -72,7 +72,7 @@
 /* #undef HAVE_ATTR_XATTR_H */
 
 /* Define to 1 if you have the `backtrace' function. */
-#define HAVE_BACKTRACE 1
+/* #undef HAVE_BACKTRACE */
 
 /* Define to 1 if you have the `blkid_probe_enable_partitions' function. */
 /* #undef HAVE_BLKID_PROBE_ENABLE_PARTITIONS */
@@ -85,14 +85,14 @@
 
 /* Define to 1 if you have the Mac OS X function CFLocaleCopyCurrent in the
    CoreFoundation framework. */
-#define HAVE_CFLOCALECOPYCURRENT 1
+/* #undef HAVE_CFLOCALECOPYCURRENT */
 
 /* Define to 1 if you have the Mac OS X function CFPreferencesCopyAppValue in
    the CoreFoundation framework. */
-#define HAVE_CFPREFERENCESCOPYAPPVALUE 1
+/* #undef HAVE_CFPREFERENCESCOPYAPPVALUE */
 
 /* Define to 1 if you have the `chflags' function. */
-#define HAVE_CHFLAGS 1
+/* #undef HAVE_CHFLAGS */
 
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
@@ -104,7 +104,7 @@
 
 /* Define to 1 if you have the declaration of `fgets_unlocked', and to 0 if
    you don't. */
-#define HAVE_DECL_FGETS_UNLOCKED 0
+#define HAVE_DECL_FGETS_UNLOCKED 1
 
 /* Define to 1 if you have the declaration of `getc_unlocked', and to 0 if you
    don't. */
@@ -122,7 +122,7 @@
 #define HAVE_DIRENT_H 1
 
 /* Define to 1 if you have the `dlopen' function. */
-#define HAVE_DLOPEN 1
+/* #undef HAVE_DLOPEN */
 
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 /* #undef HAVE_DOPRNT */
@@ -131,10 +131,10 @@
 #define HAVE_ERRNO_H 1
 
 /* Define to 1 if you have the <execinfo.h> header file. */
-#define HAVE_EXECINFO_H 1
+/* #undef HAVE_EXECINFO_H */
 
 /* Define to 1 if Ext2 ioctls present */
-/* #undef HAVE_EXT2_IOCTLS */
+#define HAVE_EXT2_IOCTLS 1
 
 /* Define to 1 if you have the `fadvise64' function. */
 /* #undef HAVE_FADVISE64 */
@@ -152,19 +152,19 @@
 #define HAVE_FDATASYNC 1
 
 /* Define to 1 if you have the <features.h> header file. */
-/* #undef HAVE_FEATURES_H */
+#define HAVE_FEATURES_H 1
 
 /* Define to 1 if you have the `fstat64' function. */
 #define HAVE_FSTAT64 1
 
 /* Define to 1 if you have the `ftruncate64' function. */
-/* #undef HAVE_FTRUNCATE64 */
+#define HAVE_FTRUNCATE64 1
 
 /* Define to 1 if you have the <fuse.h> header file. */
 /* #undef HAVE_FUSE_H */
 
 /* Define to 1 if you have the `futimes' function. */
-#define HAVE_FUTIMES 1
+/* #undef HAVE_FUTIMES */
 
 /* Define to 1 if you have the `fwprintf' function. */
 #define HAVE_FWPRINTF 1
@@ -173,7 +173,7 @@
 #define HAVE_GETCWD 1
 
 /* Define to 1 if you have the `getdtablesize' function. */
-#define HAVE_GETDTABLESIZE 1
+/* #undef HAVE_GETDTABLESIZE */
 
 /* Define to 1 if you have the `getegid' function. */
 #define HAVE_GETEGID 1
@@ -185,7 +185,7 @@
 #define HAVE_GETGID 1
 
 /* Define to 1 if you have the `getmntinfo' function. */
-#define HAVE_GETMNTINFO 1
+/* #undef HAVE_GETMNTINFO */
 
 /* Define to 1 if you have the <getopt.h> header file. */
 #define HAVE_GETOPT_H 1
@@ -194,7 +194,7 @@
 #define HAVE_GETPAGESIZE 1
 
 /* Define to 1 if you have the `getpwuid_r' function. */
-#define HAVE_GETPWUID_R 1
+/* #undef HAVE_GETPWUID_R */
 
 /* Define to 1 if you have the `getrlimit' function. */
 #define HAVE_GETRLIMIT 1
@@ -264,19 +264,19 @@
 #define HAVE_LONG_LONG_INT 1
 
 /* Define to 1 if you have the `lseek64' function. */
-/* #undef HAVE_LSEEK64 */
+#define HAVE_LSEEK64 1
 
 /* Define to 1 if lseek64 declared in unistd.h */
-/* #undef HAVE_LSEEK64_PROTOTYPE */
+#define HAVE_LSEEK64_PROTOTYPE 1
 
 /* Define to 1 if you have the <magic.h> header file. */
 /* #undef HAVE_MAGIC_H */
 
 /* Define to 1 if you have the `mallinfo' function. */
-/* #undef HAVE_MALLINFO */
+#define HAVE_MALLINFO 1
 
 /* Define to 1 if you have the <malloc.h> header file. */
-/* #undef HAVE_MALLOC_H */
+#define HAVE_MALLOC_H 1
 
 /* Define to 1 if you have the `mbrtowc' function. */
 #define HAVE_MBRTOWC 1
@@ -285,19 +285,19 @@
 #define HAVE_MBSTOWCS 1
 
 /* Define to 1 if you have the `memalign' function. */
-/* #undef HAVE_MEMALIGN */
+#define HAVE_MEMALIGN 1
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
 /* Define to 1 if you have the `mempcpy' function. */
-/* #undef HAVE_MEMPCPY */
+#define HAVE_MEMPCPY 1
 
 /* Define to 1 if you have the `mmap' function. */
 #define HAVE_MMAP 1
 
 /* Define to 1 if you have the <mntent.h> header file. */
-/* #undef HAVE_MNTENT_H */
+#define HAVE_MNTENT_H 1
 
 /* Define to 1 if you have the `msync' function. */
 #define HAVE_MSYNC 1
@@ -312,7 +312,7 @@
 #define HAVE_NETINET_IN_H 1
 
 /* Define to 1 if you have the <net/if_dl.h> header file. */
-#define HAVE_NET_IF_DL_H 1
+/* #undef HAVE_NET_IF_DL_H */
 
 /* Define to 1 if you have the <net/if.h> header file. */
 #define HAVE_NET_IF_H 1
@@ -321,10 +321,10 @@
 #define HAVE_NEWLOCALE 1
 
 /* Define to 1 if you have the `open64' function. */
-/* #undef HAVE_OPEN64 */
+#define HAVE_OPEN64 1
 
 /* Define to 1 if optreset for getopt is present */
-#define HAVE_OPTRESET 1
+/* #undef HAVE_OPTRESET */
 
 /* Define to 1 if you have the `pathconf' function. */
 #define HAVE_PATHCONF 1
@@ -333,10 +333,10 @@
 #define HAVE_PATHS_H 1
 
 /* Define to 1 if you have the `posix_fadvise' function. */
-/* #undef HAVE_POSIX_FADVISE */
+#define HAVE_POSIX_FADVISE 1
 
 /* Define to 1 if you have the `posix_fadvise64' function. */
-/* #undef HAVE_POSIX_FADVISE64 */
+#define HAVE_POSIX_FADVISE64 1
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #define HAVE_POSIX_MEMALIGN 1
@@ -351,7 +351,7 @@
 #define HAVE_PREAD 1
 
 /* Define to 1 if you have the `pread64' function. */
-/* #undef HAVE_PREAD64 */
+#define HAVE_PREAD64 1
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #define HAVE_PTHREAD_H 1
@@ -369,13 +369,13 @@
 #define HAVE_PWRITE 1
 
 /* Define to 1 if you have the `pwrite64' function. */
-/* #undef HAVE_PWRITE64 */
+#define HAVE_PWRITE64 1
 
 /* Define to 1 if dirent has d_reclen */
 #define HAVE_RECLEN_DIRENT 1
 
 /* Define to 1 if if struct sockaddr contains sa_len */
-#define HAVE_SA_LEN 1
+/* #undef HAVE_SA_LEN */
 
 /* Define to 1 if you have the `secure_getenv' function. */
 /* #undef HAVE_SECURE_GETENV */
@@ -396,13 +396,13 @@
 #define HAVE_SETLOCALE 1
 
 /* Define to 1 if you have the `setmntent' function. */
-/* #undef HAVE_SETMNTENT */
+#define HAVE_SETMNTENT 1
 
 /* Define to 1 if you have the `setresgid' function. */
-/* #undef HAVE_SETRESGID */
+#define HAVE_SETRESGID 1
 
 /* Define to 1 if you have the `setresuid' function. */
-/* #undef HAVE_SETRESUID */
+#define HAVE_SETRESUID 1
 
 /* Define to 1 if you have the <signal.h> header file. */
 #define HAVE_SIGNAL_H 1
@@ -414,7 +414,7 @@
 #define HAVE_SRANDOM 1
 
 /* Define to 1 if struct stat has st_flags */
-#define HAVE_STAT_FLAGS 1
+/* #undef HAVE_STAT_FLAGS */
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #define HAVE_STDARG_H 1
@@ -460,7 +460,7 @@
 #define HAVE_STRTOULL 1
 
 /* Define to 1 if `st_atim' is a member of `struct stat'. */
-/* #undef HAVE_STRUCT_STAT_ST_ATIM */
+#define HAVE_STRUCT_STAT_ST_ATIM 1
 
 /* Define to 1 if you have the `symlink' function. */
 #define HAVE_SYMLINK 1
@@ -472,13 +472,13 @@
 #define HAVE_SYSCONF 1
 
 /* Define to 1 if you have the <sys/acl.h> header file. */
-#define HAVE_SYS_ACL_H 1
+/* #undef HAVE_SYS_ACL_H */
 
 /* Define to 1 if you have the <sys/disklabel.h> header file. */
 /* #undef HAVE_SYS_DISKLABEL_H */
 
 /* Define to 1 if you have the <sys/disk.h> header file. */
-#define HAVE_SYS_DISK_H 1
+/* #undef HAVE_SYS_DISK_H */
 
 /* Define to 1 if you have the <sys/file.h> header file. */
 #define HAVE_SYS_FILE_H 1
@@ -502,7 +502,7 @@
 #define HAVE_SYS_PARAM_H 1
 
 /* Define to 1 if you have the <sys/prctl.h> header file. */
-/* #undef HAVE_SYS_PRCTL_H */
+#define HAVE_SYS_PRCTL_H 1
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #define HAVE_SYS_RESOURCE_H 1
@@ -514,7 +514,7 @@
 #define HAVE_SYS_SOCKET_H 1
 
 /* Define to 1 if you have the <sys/sockio.h> header file. */
-#define HAVE_SYS_SOCKIO_H 1
+/* #undef HAVE_SYS_SOCKIO_H */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #define HAVE_SYS_STAT_H 1
@@ -526,7 +526,7 @@
 #define HAVE_SYS_SYSCTL_H 1
 
 /* Define to 1 if you have the <sys/sysmacros.h> header file. */
-/* #undef HAVE_SYS_SYSMACROS_H */
+#define HAVE_SYS_SYSMACROS_H 1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #define HAVE_SYS_TIME_H 1
@@ -547,7 +547,7 @@
 /* #undef HAVE_TERMIO_H */
 
 /* Define to 1 if you have the `tsearch' function. */
-#define HAVE_TSEARCH 1
+/* #undef HAVE_TSEARCH */
 
 /* Define to 1 if ssize_t declared */
 #define HAVE_TYPE_SSIZE_T 1
@@ -568,10 +568,10 @@
 #define HAVE_USLEEP 1
 
 /* Define to 1 if you have the `utime' function. */
-#define HAVE_UTIME 1
+/* #undef HAVE_UTIME */
 
 /* Define to 1 if you have the `utimes' function. */
-#define HAVE_UTIMES 1
+/* #undef HAVE_UTIMES */
 
 /* Define to 1 if you have the <utime.h> header file. */
 #define HAVE_UTIME_H 1
@@ -605,10 +605,10 @@
 #define HAVE_WORKING_O_NOATIME 0
 
 /* Define to 1 if O_NOFOLLOW works. */
-#define HAVE_WORKING_O_NOFOLLOW 1
+#define HAVE_WORKING_O_NOFOLLOW 0
 
 /* Define to 1 if you have the `__fsetlocking' function. */
-/* #undef HAVE___FSETLOCKING */
+#define HAVE___FSETLOCKING 1
 
 /* Define to 1 if you have the `__secure_getenv' function. */
 /* #undef HAVE___SECURE_GETENV */
@@ -617,7 +617,7 @@
 #define ICONV_CONST 
 
 /* Define if integer division by zero raises signal SIGFPE. */
-#define INTDIV0_RAISES_SIGFPE 1
+#define INTDIV0_RAISES_SIGFPE 0
 
 /* package name for gettext */
 #define PACKAGE "e2fsprogs"
@@ -656,7 +656,7 @@
 #define SIZEOF_LONG_LONG 8
 
 /* The size of `off_t', as computed by sizeof. */
-#define SIZEOF_OFF_T 8
+#define SIZEOF_OFF_T 4
 
 /* The size of `short', as computed by sizeof. */
 #define SIZEOF_SHORT 2
@@ -749,7 +749,7 @@
 #endif
 
 /* Define to 1 if Apple Darwin libintl workaround is needed */
-#define _INTL_REDIRECT_MACROS 1
+/* #undef _INTL_REDIRECT_MACROS */
 
 /* Define to 1 if on MINIX. */
 /* #undef _MINIX */
@@ -879,4 +879,3 @@
 #define glthread_once_func            libintl_once_func
 #define glthread_once_singlethreaded  libintl_once_singlethreaded
 #define glthread_once_multithreaded   libintl_once_multithreaded
-

@@ -1,0 +1,809 @@
+- commits:
+    - subject: add symlink support
+      hash: a7e33f0068966821626ee9e86924bbc32e0dd484
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Zane Hitchcox
+  version: 3.1.0
+  title: "'add symlink support'"
+  date: 2022-06-14T02:08:48.743Z
+- commits:
+    - subject: Fix reading and discarding with offsets > 32 bits
+      hash: b523a8c099bec84c85f3a5393adce88a73c09d7e
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+  version: 3.0.5
+  date: 2020-12-02T17:40:32.913Z
+- commits:
+    - subject: Add versionbot changelog
+      hash: e6a0eafb2097577242ef18e8d60f410f6f1a6cff
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Alexis Svinartchouk
+  version: 3.0.4
+  date: 2020-11-26T18:56:37.717Z
+- version: 3.0.3
+  date: 2020-11-05T15:27:47.000Z
+  commits:
+    - hash: d8dcad5fdd7702f1a705876b4149b63231fedc31
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Nothing
+      body: null
+- version: 3.0.2
+  date: 2020-11-05T15:09:52.000Z
+  commits:
+    - hash: 894a712d9e6003f0e90a798d63900262effd3934
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Nothing
+      body: null
+- version: 3.0.1
+  date: 2020-11-05T14:55:43.000Z
+  commits:
+    - hash: e5163efa55bcb8758366a590e1278a343aa27bef
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Nothing
+      body: null
+- version: 3.0.0
+  date: 2020-11-05T14:16:44.000Z
+  commits:
+    - hash: 1a476e0575da2df6563b233a6d675313c0cdeaaf
+      author: Alexis Svinartchouk
+      footers:
+        change-type: major
+      subject: Build with emscripten instead of a native node module
+      body: null
+    - hash: f10cb05ff855037225b212d79b4c4fa485367985
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Test removing a file in a directory
+      body: null
+    - hash: ed9464028dc2dd73f8cd67284b7a82369584374e
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Use async/await in tests
+      body: null
+    - hash: 1a0edc06d7c8093db608795d38f37c35be6034af
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Test that disk errors are bubbling up
+      body: null
+    - hash: d5344edd0f6b3b9a9ae79120c4ce0ebfc3f31878
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Test mounting partition at an offset
+      body: null
+    - hash: 80d8daab6eb5e00eb1da3ea35022f8064fc1650a
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Remove trailing slashes in paths + test
+      body: null
+    - hash: a9f2d767f9044f8e106fae9f323c0d17da0403d3
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update mocha to ^8.2.1
+      body: null
+    - hash: ec0bd0a8112b251bd73aba6a5bcd2b4406d4483c
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Remove unused parts of fs.js
+      body: null
+    - hash: 80615132a73bc1f30486798633bff43107ffd4ae
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Use a pool for object ids
+      body: null
+- version: 2.0.5
+  date: 2020-09-14T13:56:05.000Z
+  commits:
+    - hash: a0b9ae129cd9f14b3ae7c805bfdb5b8e2e55dff0
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Put libext2fs.a in $(ARCH) named folder
+      body: null
+- version: 2.0.4
+  date: 2020-09-01T13:32:22.000Z
+  commits:
+    - hash: 6103b9ad5148860f7bfcd78f04f123c8b6f6b772
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Detect host arch if no target arch is given on Windows
+      body: null
+- version: 2.0.3
+  date: 2020-09-01T10:59:40.000Z
+  commits:
+    - hash: c4abfebf4d454a95e0e6f052b0640b7692b0e582
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix compiling for 32bit Windows on 64bit Windows
+      body: null
+- version: 2.0.2
+  date: 2020-08-28T14:15:58.000Z
+  commits:
+    - hash: 096f00b655770949441527268329918db488d07b
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update example in the README
+      body: null
+- version: 2.0.1
+  date: 2020-07-31T12:44:05.000Z
+  commits:
+    - hash: b7f4aaeadb7209e855db578be0d89d0e9d7a79aa
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Remove async dependency
+      body: null
+- version: 2.0.0
+  date: 2020-07-27T17:30:26.000Z
+  commits:
+    - hash: 2e67997912b96c36f3cef1f5c5cb0f44973c317e
+      author: Alexis Svinartchouk
+      footers:
+        change-type: major
+      subject: Update file-disk to ^8, bluebird is only a dev dependency
+      body: null
+    - hash: 8b9d2cbc6346be92fe6ef7e86728d7456d4df5dd
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update eslint to ^7.5.0
+      body: null
+- version: 1.0.31
+  date: 2019-12-04T14:47:33.000Z
+  commits:
+    - hash: 9b6c7426171f3bb7ddefd97bc032610e07179d1a
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update nan to ^2.14
+      body: null
+    - hash: 84ecfa5665738f42bf7ac7f1f125b09fa7f92dee
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix build for electron7
+      body: null
+- version: 1.0.30
+  date: 2019-10-18T08:06:12.000Z
+  commits:
+    - hash: 7a9a561db06c0600833dffb2d66f9036ea27f2dd
+      author: Matthew McGinn
+      footers:
+        change-type: patch
+        signed-off-by: Matthew McGinn <matthew@balena.io>
+      subject: "ext2fs: patch ext2fs.h for glibc 2.30 compatibility"
+      body: null
+- version: 1.0.29
+  date: 2019-06-09T11:44:45.000Z
+  commits:
+    - hash: b76398e098d5c17e519966ca4fec56a8b4c329c0
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Add config for armv7l
+      body: null
+- version: 1.0.28
+  date: 2019-05-06T08:53:52.000Z
+  commits:
+    - hash: 6a83a39de736c56512e6637a1730ef168e5b59ea
+      author: Gergely Imreh
+      footers:
+        change-type: patch
+        signed-off-by: Gergely Imreh <gergely@balena.io>
+      subject: update interface for node 12 interface changes
+      body: null
+- version: 1.0.27
+  date: 2019-03-01T18:01:29.000Z
+  commits:
+    - hash: 90d9df0adf35067a377544135a414f4247c67698
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Add config for arm64
+      body: null
+- version: 1.0.26
+  date: 2019-01-28T13:28:18.000Z
+  commits:
+    - hash: 7b834aa159129e6acf54a428b30e6955dd1ebdd3
+      author: Theodor Gherzan
+      footers:
+        change-type: patch
+        signed-off-by: Theodor Gherzan <theodor@resin.io>
+      subject: Add arm config for native builds
+      body: null
+- version: 1.0.25
+  date: 2019-01-25T16:56:25.000Z
+  commits:
+    - hash: 21e17464cbd03780d81daca8c689a2048b0f2f17
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix build on latest xcode
+      body: null
+- version: 1.0.24
+  date: 2018-12-18T16:21:15.000Z
+  commits:
+    - hash: fb0ec3be5a957e74f7f1c2cabf7abe4d80bff80f
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Pin nan to 2.11.1 to avoid a build issue on node 10.4
+      body: >-
+        ```
+
+        In file included from ../src/node_ext2fs.cc:2:0:
+
+        ../../nan/nan.h: In constructor 'Nan::Utf8String::Utf8String(v8::Local<v8::Value>)':
+
+        ../../nan/nan.h:1081:101: error: no matching function for call to 'v8::String::WriteUtf8(v8::Isolate*, char*&, int, int, const int&)'
+
+        length_ = string->WriteUtf8(v8::Isolate::GetCurrent(), str_, static_cast<int>(len), 0, flags);
+
+        ^
+
+        In file included from /root/.node-gyp/10.4.0/include/node/node.h:63:0,
+
+        from ../../nan/nan.h:53,
+
+        from ../src/node_ext2fs.cc:2:
+
+        /root/.node-gyp/10.4.0/include/node/v8.h:2616:7: note: candidate: int v8::String::WriteUtf8(char*, int, int*, int) const
+
+        ```
+- version: 1.0.23
+  date: 2018-11-29T17:10:30.000Z
+  commits:
+    - hash: bcc769592bb5def9e9aaf4853ac8223a94f9a181
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update file-disk to 5.0.0 and make it a devDependency
+      body: null
+    - hash: 3ac8826606c4036f4521b7fd253a3b8f05d2d847
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Disable use of secure_getenv on linux x64 systems
+      body: null
+- version: 1.0.22
+  date: 2018-11-20T13:15:41.000Z
+  commits:
+    - hash: 6674b092e055b761eff9f79fa9324fbd7303d040
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix organization name in travis.yml
+      body: null
+- version: 1.0.21
+  date: 2018-11-19T14:58:08.000Z
+  commits:
+    - hash: b9204e94234dc118c60aae38346a9167e56c4285
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update requirements
+      body: null
+    - hash: f3aa74d8e20e07d1906794c722514feb7925e6bb
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Rename resin -> balena
+      body: null
+- version: 1.0.20
+  date: 2018-11-14T21:00:30.000Z
+  commits:
+    - hash: 2eb340315011d2bd4167a66cba16d24d00e7b7b1
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Disable use of secure_getenv on linux ia32 systems
+      body: null
+- version: 1.0.19
+  date: 2018-11-14T15:56:54.000Z
+  commits:
+    - hash: e18675d74fc0a590676b0e428d525777e41c6f11
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix unresolved symbol ext2fs_open_file
+      body: Somehow this error was only happening on linux ia32 builds.
+- version: 1.0.18
+  date: 2018-10-24T12:11:16.000Z
+  commits:
+    - hash: 75a12b511ec10d91de13c73d99b75f6a6b3e90d3
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Build for Windows with VS 2017 to hopefully fix deploys
+      body: null
+    - hash: 29e13ada9377645f9e011c1b26d1270a7278d044
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Pin windows build tools to a version that works with Node 6
+      body: null
+    - hash: d4c804ae856286014519727142fc1d4d1d54fd88
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Stop building for now-unsupported node 7 & 9, add node 11
+      body: null
+- version: 1.0.17
+  date: 2018-10-02T09:56:47.000Z
+  commits:
+    - hash: f70880983d9e458415f12739e51b39f4cd71393d
+      author: Theodor Gherzan
+      footers:
+        change-type: patch
+        signed-off-by: Theodor Gherzan <theodor@resin.io>
+      subject: Fix integer overflow
+      body: |-
+        Offset and position can go well beyond the limit of unsigned int
+        fix this to the largest data type we have (i.e. long long).
+- version: 1.0.16
+  date: 2018-10-02T09:45:45.000Z
+  commits:
+    - hash: 460c78a9e705eb7304c1c738bbbc58372844ae6c
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+        signed-off-by: Alexis Svinartchouk <alexis@resin.io>
+      subject: fix(publish) Fix publish on resinCI
+      body: null
+- version: 1.0.15
+  date: 2018-08-07T13:47:23.000Z
+  commits:
+    - hash: 44823bcf425d07b578fa1d15e80e092599d4c80d
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+        signed-off-by: Alexis Svinartchouk <alexis@resin.io>
+      subject: fix(build) Fix the build on ia32
+      body: |-
+        This follows 034b967d80922cf305dc28deb5770992d25d97ea and renames x86 to
+        ia32
+- version: 1.0.14
+  date: 2018-08-03T20:20:25.000Z
+  commits:
+    - hash: 034b967d80922cf305dc28deb5770992d25d97ea
+      author: Juan Cruz Viotti
+      footers:
+        change-type: patch
+        signed-off-by: Juan Cruz Viotti <jv@jviotti.com>
+      subject: add x86 config for GNU/Linux
+      body: "Otherwise this module will not work on Linux x86:"
+- version: 1.0.13
+  date: 2018-07-16T14:52:26.000Z
+  commits:
+    - hash: 9fb193d69670cfaabec36c6de136d650834b4452
+      author: Jonas Hermsmeier
+      footers:
+        change-type: patch
+        signed-off-by: Jonas Hermsmeier <jhermsmeier@gmail.com>
+      subject: "fix(package): Add upload-electron-win script"
+      body: |-
+        In order to avoid any potential interference of `cross-env` on Windows,
+        an `upload-electron-win`, analog to `upload-win`
+- version: 1.0.12
+  date: 2018-07-13T19:32:06.000Z
+  commits:
+    - hash: 6cfa889931ae56ffc7fd64449f7e40b84c80dee2
+      author: Jonas Hermsmeier
+      footers:
+        change-type: patch
+        signed-off-by: Jonas Hermsmeier <jhermsmeier@gmail.com>
+      subject: "fix(package): Fix prebuild include-regex argument on Windows"
+      body: |-
+        The Windows command line passes on the single quotes literally,
+        causing the regular expression to mismatch, in turn causing no bindings
+        to be selected from `build/Release/`
+- version: 1.0.11
+  date: 2018-07-13T18:39:25.000Z
+  commits:
+    - hash: eb5e4093e445f154422b12134fd3d40c7e1951ad
+      author: Jonas Hermsmeier
+      footers:
+        change-type: patch
+        signed-off-by: Jonas Hermsmeier <jhermsmeier@gmail.com>
+      subject: "fix(bindings): Fix 64bit -> 32bit casts in fs.stat"
+      body: |-
+        This fixes `fs.stat()` for large files, as number values
+        in `fs.Stats` objects were casted to 32bit, but can exceed that.
+- version: 1.0.10
+  date: 2018-07-13T17:46:31.000Z
+  commits:
+    - hash: 19fcc084284829d9ddc7da4a225857da01fd91d5
+      author: Jonas Hermsmeier
+      footers:
+        change-type: patch
+        signed-off-by: Jonas Hermsmeier <jhermsmeier@gmail.com>
+      subject: "fix(appveyor): Fix batch condition for electron prebuilds"
+      body: MS Batch doesn't have logical operators in conditionals.
+- version: 1.0.9
+  date: 2018-07-10T17:18:02.000Z
+  commits:
+    - hash: 4be64e595e4c921b1c33915a1755a89df6df216a
+      author: Jonas Hermsmeier
+      footers:
+        change-type: patch
+      subject: "fix(ci): Fix cross-env not converting lowercase var"
+      body: |-
+        This works around an issue with `cross-env` where it doesn't
+        convert env vars that are lower-case
+- version: 1.0.8
+  date: 2018-07-10T16:16:20.000Z
+  commits:
+    - hash: 66291c90f034a41e133dbb9d3a98ce2992ad0d3e
+      author: Jonas Hermsmeier
+      footers:
+        change-type: patch
+      subject: "chore(package): Prebuild against Electron runtime"
+      body: This adds prebuilding binaries for the Electron runtime
+- version: 1.0.7
+  date: 2018-05-24T09:51:28.000Z
+  commits:
+    - hash: 639e09ac1e35ef5617c8d35c4ea35c4ac1a786b5
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: bluebird is a dependency, not a dev dependency
+      body: "Connects-To: #26"
+    - hash: eaff7b823692ef578779b24276605fcd61d06063
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix some deprecation warnings in node_ext2fs.cc
+      body: "Connects-To: #26"
+    - hash: 05008b290e1fef00f7f74aa7c2c52a42d5f5247a
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Handle all request types in DiskWrapper.request.
+      body: |-
+        Also don't callback with an Error instance as this isn't handled
+        js_request_done. Use EINVAL (-22) instead.
+        Connects-To: #26
+    - hash: 751a869e8167735b6d7ee104581a66f0fd8e624d
+      author: Alexis Svinartchouk
+      footers:
+        connacts-to: "#26"
+      subject: Fix FunctionTemplate memory leak
+      body: |-
+        FunctionTemplates are never garbage collected in v8, we used to create
+        one each time we needed js to call back into C. Now we always use the
+        same persistent function but add 2 External parameters to Disk.request()
+        that must be passed back to the callback.
+        Change-Type: patch
+    - hash: 258e68d2355992842c8d23bbdd6581b67e389ed6
+      author: Alexis Svinartchouk
+      footers:
+        connects-to: "#26"
+      subject: "Fix a memory leak: io_channels weren't freed on close."
+      body: "Change-Type: patch"
+- version: 1.0.6
+  date: 2018-04-30T09:19:45.000Z
+  commits:
+    - hash: 3276fde218b9fff914b8c4c26edc190cff4832c9
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Build, test & release for node 10
+      body: null
+- version: 1.0.5
+  date: 2018-04-27T10:56:39.000Z
+  commits:
+    - hash: a0607f4da932a42e93cb9f14ff3b827ccd3e9a43
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Move eslint to dev dependencies
+      body: null
+- version: 1.0.4
+  date: 2018-04-25T09:11:27.000Z
+  commits:
+    - hash: ada59dcb4396cb8e6a256f6045f3c7730dff5ad7
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Use fs's blocksize instead of hardcoded 1024 in ReadDirWorker
+      body: "Connects-To: #23"
+- version: 1.0.3
+  date: 2018-03-30T19:43:15.000Z
+  commits:
+    - hash: f96a0f15140ec1358bc5627b71329e452bc3ab3e
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Only include the bindings.node file in prebuilds
+      body: "Connects-To: #20"
+- version: 1.0.2
+  date: 2018-03-30T01:48:58.000Z
+  commits:
+    - hash: 3590735b6cd4d4c55a6a0ca1f888c6ce3f460c6f
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Replace node-pre-gyp with prebuild
+      body: "Connects-To: #18"
+    - hash: 21682173b9b4a90411bf4e6be9a2c3933fcb1dac
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Use cross-env so the upload script works on windows
+      body: "Connects-To: #18"
+- version: 1.0.1
+  date: 2018-03-28T17:57:16.000Z
+  commits:
+    - hash: cdc7629edba62fed8163b5d432d074bf22e516ec
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update node-pre-gyp to 0.9.0
+      body: "Connects-To: #16"
+- version: 1.0.0
+  date: 2018-03-27T18:43:20.000Z
+  commits:
+    - hash: a09468804271b1d66e8745cb08367636b2d89ec1
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Update e2fsprogs to v1.44.1
+      body: "Connects-To: #14"
+    - hash: adc2578e5f99f2d0a2b0bfb0745464eae045c615
+      author: Alexis Svinartchouk
+      footers:
+        change-type: major
+      subject: Update file-disk to ^4.1.1
+      body: "Connects-To: #14"
+- version: 0.1.1
+  date: 2017-11-21T20:56:28.000Z
+  commits:
+    - hash: 424e793296292adb2fb69a20854965a61e8c6b4e
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Ensure pre-gyp releases use the existing versionbot tag (not a new one)
+      body: null
+- version: 0.1.0
+  date: 2017-11-20T20:50:50.000Z
+  commits:
+    - hash: 28c175a80560945a09af5559927642cba4afc30c
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Add a changelog so we can set up versionbot
+      body: null
+    - hash: 8597e05101fd459fe2c2ad28b453100795a0c822
+      author: Tim Perry
+      footers:
+        change-type: minor
+      subject: Use pre-gyp-github to automatically install prebuilt binaries when
+        available
+      body: null
+    - hash: 53c89ed1b07dd1b3eb0f934aff5398e7dfe01888
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Automatically release built binaries to github for pre-gyp
+      body: null
+    - hash: d1e1f55da9d4f4c71715cc3bf87ab03d5e8acf5b
+      author: Tim Perry
+      subject: In CI builds, rebuild instead of using the pre-gypped modules
+      body: null
+    - hash: 29605ffc74a58adf0e2d960b971101deb263fea1
+      author: Tim Perry
+      subject: Also prebuild for OSX, and Node 9 + 7 on all platforms
+      body: null
+    - hash: 6a833a04d042643391ad6a2564ba372e71ff2cf0
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Add clock_gettime implementation so this works on OSX < 10.11
+      body: null
+    - hash: 15eb8a978af6e8be1ff518946284d870945aaad1
+      author: Tim Perry
+      subject: Stop forcing g++-4.8 in travis, to fix OSX builds
+      body: null
+    - hash: 991e28f539276c274adccd100021c749a38b15b7
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Add Windows tests with appveyor
+      body: null
+    - hash: da429b64e0da2ad1a8319310302334fb29315c16
+      author: Tim Perry
+      footers:
+        change-type: patch
+      subject: Update e2fsprogs
+      body: null
+- version: 0.0.15
+  date: 2017-06-29T10:30:44.000Z
+  commits:
+    - hash: 3a8ccaf0fc69d5657c2da1cfe18b9d6b31e8c105
+      author: Alexis Svinartchouk
+      subject: fix win32 build
+      body: null
+    - hash: 03638ea1a01485c43c976e1a0e155bcbeb3549af
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Fix example in README.md
+      body: null
+    - hash: 696d96561ff6619073829e490f5529308e02df28
+      author: Alexis Svinartchouk
+      subject: umount support
+      body: null
+    - hash: c745e911f52d7d6796bb93d5452a8fd23bc63296
+      author: Alexis Svinartchouk
+      subject: export close function so programs can exit
+      body: null
+    - hash: 42139fb8757d46e81c5f339ff66dec202a4fc9c4
+      author: Alexis Svinartchouk
+      subject: Use eslint
+      body: null
+    - hash: 22605f75c3a5a4943808513da6c79ae2cea1d733
+      author: Alexis Svinartchouk
+      subject: mount returns an ext2_filsys External only
+      body: null
+    - hash: 976f84bd4b63a803442cffbe4798d364b5bf6d73
+      author: Alexis Svinartchouk
+      subject: basic open, fstat, read, close support
+      body: null
+    - hash: 9a615edc557e53a8f334ee7c97a3c27f558a77b2
+      author: Alexis Svinartchouk
+      subject: basic readdir support
+      body: null
+    - hash: e80408cbad5d7144ab52b60b5f669390840328ae
+      author: Alexis Svinartchouk
+      subject: add missing files
+      body: null
+    - hash: 1f8e02940640b04a25d40888f2e277a6eaed5784
+      author: Alexis Svinartchouk
+      subject: basic write support
+      body: null
+    - hash: 6b0526cc4c1b172accc0710a1aae6f25211c6445
+      author: Alexis Svinartchouk
+      subject: add missing headers in ext2fs.h
+      body: |-
+        factorize node_ext2fs.cc
+        factorize tests
+        test creating a file in a folder that does not exist
+    - hash: 1d30415f43699829e52f706876977ecbd231f0f0
+      author: Alexis Svinartchouk
+      subject: store open flags
+      body: |-
+        implement writeString
+        update {a,c,m}time
+    - hash: 9c9429b01d92aad359ac24da63facc950ef6d853
+      author: Alexis Svinartchouk
+      subject: implement unlink and rmdir
+      body: null
+    - hash: 6ea24f5d0dec24e8e15acafad2d7b47023ebc8a3
+      author: Alexis Svinartchouk
+      subject: implement stat
+      body: null
+    - hash: f0876bdd9f2ca0418134d268c41d96a2ad189e01
+      author: Alexis Svinartchouk
+      subject: implement access
+      body: null
+    - hash: b055e1079207fab543ba066c6e5c05f28178fe76
+      author: Alexis Svinartchouk
+      subject: implement mkdir
+      body: null
+    - hash: 8ae4811c854d97222fb58218793d65f7932b1281
+      author: Alexis Svinartchouk
+      subject: mkdir sets the correct mode
+      body: null
+    - hash: a73dfbac40048316db278a9b88ce365474dab79b
+      author: Alexis Svinartchouk
+      subject: EBADF when trying to read a write only file and vice versa
+      body: null
+    - hash: 8ca0c8ff5ce9110b688a0e6d56fbd04e1b1c16bb
+      author: Alexis Svinartchouk
+      subject: append mode
+      body: null
+    - hash: ca94c0f0a29ffdc7b7dcc43c7f7f0fbcff71a4e4
+      author: Alexis Svinartchouk
+      subject: remove a memory leak
+      body: null
+    - hash: 1127196c1c6290d1f967678d60928cd5e1585eb7
+      author: Alexis Svinartchouk
+      subject: return ENOENT when trying to list a directory that doesn't exist
+      body: null
+    - hash: 9894e35cac90dee758b3a7038d43326f2c806183
+      author: Alexis Svinartchouk
+      subject: fix some leaks
+      body: null
+    - hash: 0c7e52b56525181290496b717deed8b60a2d0234
+      author: Alexis Svinartchouk
+      subject: eslint fixes
+      body: null
+    - hash: 7af4872fc2c0a252db4f958669340c114ed01d1f
+      author: Alexis Svinartchouk
+      subject: test that file size is updated after a write
+      body: null
+    - hash: 012933d6c75b672ef7ccb39184297a1a15304685
+      author: Alexis Svinartchouk
+      subject: implement fchmod and chmod
+      body: null
+    - hash: fd931d44f3e173202ec9129d9af8217e68a6af51
+      author: Alexis Svinartchouk
+      subject: file descriptors start at 3
+      body: null
+    - hash: 417965b4f57c433abefd109f9b583650ce86e3b3
+      author: Alexis Svinartchouk
+      subject: implement fchown and chown
+      body: null
+    - hash: 84da3a4f51476533434c71e3b635e2a63ec0e5a1
+      author: Alexis Svinartchouk
+      subject: respect O_EXCL open flag
+      body: null
+    - hash: 48d6753dc3509acee215ef9cd57b8f8acaf99a9e
+      author: Alexis Svinartchouk
+      subject: respect O_TRUNC open flag
+      body: null
+    - hash: 0b191941ac1fc15aaea71c7dc3ea08422ec0fec0
+      author: Alexis Svinartchouk
+      subject: reuse fds
+      body: null
+    - hash: c61417d93b5647355a7e2d10bca06d40f8166a7c
+      author: Alexis Svinartchouk
+      subject: handle more error cases, more tests
+      body: null
+- version: 0.0.8
+  date: 2017-06-15T11:41:24.000Z
+  commits:
+    - hash: 30e8dbe4be09dcff775c7993f27afdbe18839d43
+      author: Alexis Svinartchouk
+      subject: support node 8
+      body: null
+- version: 0.0.3
+  date: 2017-05-17T18:42:03.000Z
+  commits:
+    - hash: 00d3765ec98dc4636ffb259c68c97bc587e92a6a
+      author: Alexis Svinartchouk alexis@resin.io
+      footers:
+        change-type: patch
+      subject: Update resin-file-dsik to 0.0.8
+      body: null
+    - hash: 935da7b7164a52f74f2b34b96e69105ada83c737
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Switch from resin-file-disk to file-disk
+      body: null
+    - hash: 1d90c3aaebae912ffc8989ed5d25a7c1363e70a5
+      author: Alexis Svinartchouk
+      footers:
+        change-type: patch
+      subject: Use resin-file-disk
+      body: null
+    - hash: 5d5b2c548df8a02f324279b2bc3b1475908a7ba8
+      author: Jonas Hermsmeier
+      subject: "chore(package): Update name, add repository and metadata"
+      body: null

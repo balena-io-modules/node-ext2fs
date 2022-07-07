@@ -1,3 +1,5 @@
 node_modules
-/build
-/pregyp
+*.o
+*.wasm
+package-lock.json
+lib/libext2fs.js
