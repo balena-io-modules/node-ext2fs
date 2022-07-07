@@ -1,7 +1,18 @@
 - commits:
+    - subject: add symlink support
+      hash: a7e33f0068966821626ee9e86924bbc32e0dd484
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Zane Hitchcox
+  version: 3.1.0
+  title: "'add symlink support'"
+  date: 2022-06-14T02:08:48.743Z
+- commits:
     - subject: Fix reading and discarding with offsets > 32 bits
       hash: b523a8c099bec84c85f3a5393adce88a73c09d7e
-      body: ''
+      body: ""
       footer:
         Change-type: patch
         change-type: patch
@@ -11,7 +22,7 @@
 - commits:
     - subject: Add versionbot changelog
       hash: e6a0eafb2097577242ef18e8d60f410f6f1a6cff
-      body: ''
+      body: ""
       footer:
         Change-type: patch
         change-type: patch
@@ -154,7 +165,7 @@
       author: Alexis Svinartchouk
       footers:
         change-type: major
-      subject: 'Update file-disk to ^8, bluebird is only a dev dependency'
+      subject: Update file-disk to ^8, bluebird is only a dev dependency
       body: null
     - hash: 8b9d2cbc6346be92fe6ef7e86728d7456d4df5dd
       author: Alexis Svinartchouk
@@ -185,7 +196,7 @@
       footers:
         change-type: patch
         signed-off-by: Matthew McGinn <matthew@balena.io>
-      subject: 'ext2fs: patch ext2fs.h for glibc 2.30 compatibility'
+      subject: "ext2fs: patch ext2fs.h for glibc 2.30 compatibility"
       body: null
 - version: 1.0.29
   date: 2019-06-09T11:44:45.000Z
@@ -247,14 +258,11 @@
 
         In file included from ../src/node_ext2fs.cc:2:0:
 
-        ../../nan/nan.h: In constructor
-        'Nan::Utf8String::Utf8String(v8::Local<v8::Value>)':
+        ../../nan/nan.h: In constructor 'Nan::Utf8String::Utf8String(v8::Local<v8::Value>)':
 
-        ../../nan/nan.h:1081:101: error: no matching function for call to
-        'v8::String::WriteUtf8(v8::Isolate*, char*&, int, int, const int&)'
+        ../../nan/nan.h:1081:101: error: no matching function for call to 'v8::String::WriteUtf8(v8::Isolate*, char*&, int, int, const int&)'
 
-        length_ = string->WriteUtf8(v8::Isolate::GetCurrent(), str_,
-        static_cast<int>(len), 0, flags);
+        length_ = string->WriteUtf8(v8::Isolate::GetCurrent(), str_, static_cast<int>(len), 0, flags);
 
         ^
 
@@ -264,8 +272,7 @@
 
         from ../src/node_ext2fs.cc:2:
 
-        /root/.node-gyp/10.4.0/include/node/v8.h:2616:7: note: candidate: int
-        v8::String::WriteUtf8(char*, int, int*, int) const
+        /root/.node-gyp/10.4.0/include/node/v8.h:2616:7: note: candidate: int v8::String::WriteUtf8(char*, int, int*, int) const
 
         ```
 - version: 1.0.23
@@ -344,7 +351,7 @@
       author: Tim Perry
       footers:
         change-type: patch
-      subject: 'Stop building for now-unsupported node 7 & 9, add node 11'
+      subject: Stop building for now-unsupported node 7 & 9, add node 11
       body: null
 - version: 1.0.17
   date: 2018-10-02T09:56:47.000Z
@@ -389,7 +396,7 @@
         change-type: patch
         signed-off-by: Juan Cruz Viotti <jv@jviotti.com>
       subject: add x86 config for GNU/Linux
-      body: 'Otherwise this module will not work on Linux x86:'
+      body: "Otherwise this module will not work on Linux x86:"
 - version: 1.0.13
   date: 2018-07-16T14:52:26.000Z
   commits:
@@ -398,7 +405,7 @@
       footers:
         change-type: patch
         signed-off-by: Jonas Hermsmeier <jhermsmeier@gmail.com>
-      subject: 'fix(package): Add upload-electron-win script'
+      subject: "fix(package): Add upload-electron-win script"
       body: |-
         In order to avoid any potential interference of `cross-env` on Windows,
         an `upload-electron-win`, analog to `upload-win`
@@ -410,7 +417,7 @@
       footers:
         change-type: patch
         signed-off-by: Jonas Hermsmeier <jhermsmeier@gmail.com>
-      subject: 'fix(package): Fix prebuild include-regex argument on Windows'
+      subject: "fix(package): Fix prebuild include-regex argument on Windows"
       body: |-
         The Windows command line passes on the single quotes literally,
         causing the regular expression to mismatch, in turn causing no bindings
@@ -423,7 +430,7 @@
       footers:
         change-type: patch
         signed-off-by: Jonas Hermsmeier <jhermsmeier@gmail.com>
-      subject: 'fix(bindings): Fix 64bit -> 32bit casts in fs.stat'
+      subject: "fix(bindings): Fix 64bit -> 32bit casts in fs.stat"
       body: |-
         This fixes `fs.stat()` for large files, as number values
         in `fs.Stats` objects were casted to 32bit, but can exceed that.
@@ -435,7 +442,7 @@
       footers:
         change-type: patch
         signed-off-by: Jonas Hermsmeier <jhermsmeier@gmail.com>
-      subject: 'fix(appveyor): Fix batch condition for electron prebuilds'
+      subject: "fix(appveyor): Fix batch condition for electron prebuilds"
       body: MS Batch doesn't have logical operators in conditionals.
 - version: 1.0.9
   date: 2018-07-10T17:18:02.000Z
@@ -444,7 +451,7 @@
       author: Jonas Hermsmeier
       footers:
         change-type: patch
-      subject: 'fix(ci): Fix cross-env not converting lowercase var'
+      subject: "fix(ci): Fix cross-env not converting lowercase var"
       body: |-
         This works around an issue with `cross-env` where it doesn't
         convert env vars that are lower-case
@@ -455,7 +462,7 @@
       author: Jonas Hermsmeier
       footers:
         change-type: patch
-      subject: 'chore(package): Prebuild against Electron runtime'
+      subject: "chore(package): Prebuild against Electron runtime"
       body: This adds prebuilding binaries for the Electron runtime
 - version: 1.0.7
   date: 2018-05-24T09:51:28.000Z
@@ -464,14 +471,14 @@
       author: Alexis Svinartchouk
       footers:
         change-type: patch
-      subject: 'bluebird is a dependency, not a dev dependency'
-      body: 'Connects-To: #26'
+      subject: bluebird is a dependency, not a dev dependency
+      body: "Connects-To: #26"
     - hash: eaff7b823692ef578779b24276605fcd61d06063
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Fix some deprecation warnings in node_ext2fs.cc
-      body: 'Connects-To: #26'
+      body: "Connects-To: #26"
     - hash: 05008b290e1fef00f7f74aa7c2c52a42d5f5247a
       author: Alexis Svinartchouk
       footers:
@@ -484,7 +491,7 @@
     - hash: 751a869e8167735b6d7ee104581a66f0fd8e624d
       author: Alexis Svinartchouk
       footers:
-        connacts-to: '#26'
+        connacts-to: "#26"
       subject: Fix FunctionTemplate memory leak
       body: |-
         FunctionTemplates are never garbage collected in v8, we used to create
@@ -495,9 +502,9 @@
     - hash: 258e68d2355992842c8d23bbdd6581b67e389ed6
       author: Alexis Svinartchouk
       footers:
-        connects-to: '#26'
-      subject: 'Fix a memory leak: io_channels weren''t freed on close.'
-      body: 'Change-Type: patch'
+        connects-to: "#26"
+      subject: "Fix a memory leak: io_channels weren't freed on close."
+      body: "Change-Type: patch"
 - version: 1.0.6
   date: 2018-04-30T09:19:45.000Z
   commits:
@@ -505,7 +512,7 @@
       author: Tim Perry
       footers:
         change-type: patch
-      subject: 'Build, test & release for node 10'
+      subject: Build, test & release for node 10
       body: null
 - version: 1.0.5
   date: 2018-04-27T10:56:39.000Z
@@ -524,7 +531,7 @@
       footers:
         change-type: patch
       subject: Use fs's blocksize instead of hardcoded 1024 in ReadDirWorker
-      body: 'Connects-To: #23'
+      body: "Connects-To: #23"
 - version: 1.0.3
   date: 2018-03-30T19:43:15.000Z
   commits:
@@ -533,7 +540,7 @@
       footers:
         change-type: patch
       subject: Only include the bindings.node file in prebuilds
-      body: 'Connects-To: #20'
+      body: "Connects-To: #20"
 - version: 1.0.2
   date: 2018-03-30T01:48:58.000Z
   commits:
@@ -542,13 +549,13 @@
       footers:
         change-type: patch
       subject: Replace node-pre-gyp with prebuild
-      body: 'Connects-To: #18'
+      body: "Connects-To: #18"
     - hash: 21682173b9b4a90411bf4e6be9a2c3933fcb1dac
       author: Alexis Svinartchouk
       footers:
         change-type: patch
       subject: Use cross-env so the upload script works on windows
-      body: 'Connects-To: #18'
+      body: "Connects-To: #18"
 - version: 1.0.1
   date: 2018-03-28T17:57:16.000Z
   commits:
@@ -557,7 +564,7 @@
       footers:
         change-type: patch
       subject: Update node-pre-gyp to 0.9.0
-      body: 'Connects-To: #16'
+      body: "Connects-To: #16"
 - version: 1.0.0
   date: 2018-03-27T18:43:20.000Z
   commits:
@@ -566,13 +573,13 @@
       footers:
         change-type: patch
       subject: Update e2fsprogs to v1.44.1
-      body: 'Connects-To: #14'
+      body: "Connects-To: #14"
     - hash: adc2578e5f99f2d0a2b0bfb0745464eae045c615
       author: Alexis Svinartchouk
       footers:
         change-type: major
       subject: Update file-disk to ^4.1.1
-      body: 'Connects-To: #14'
+      body: "Connects-To: #14"
 - version: 0.1.1
   date: 2017-11-21T20:56:28.000Z
   commits:
@@ -595,8 +602,7 @@
       author: Tim Perry
       footers:
         change-type: minor
-      subject: >-
-        Use pre-gyp-github to automatically install prebuilt binaries when
+      subject: Use pre-gyp-github to automatically install prebuilt binaries when
         available
       body: null
     - hash: 53c89ed1b07dd1b3eb0f934aff5398e7dfe01888
@@ -607,11 +613,11 @@
       body: null
     - hash: d1e1f55da9d4f4c71715cc3bf87ab03d5e8acf5b
       author: Tim Perry
-      subject: 'In CI builds, rebuild instead of using the pre-gypped modules'
+      subject: In CI builds, rebuild instead of using the pre-gypped modules
       body: null
     - hash: 29605ffc74a58adf0e2d960b971101deb263fea1
       author: Tim Perry
-      subject: 'Also prebuild for OSX, and Node 9 + 7 on all platforms'
+      subject: Also prebuild for OSX, and Node 9 + 7 on all platforms
       body: null
     - hash: 6a833a04d042643391ad6a2564ba372e71ff2cf0
       author: Tim Perry
@@ -621,7 +627,7 @@
       body: null
     - hash: 15eb8a978af6e8be1ff518946284d870945aaad1
       author: Tim Perry
-      subject: 'Stop forcing g++-4.8 in travis, to fix OSX builds'
+      subject: Stop forcing g++-4.8 in travis, to fix OSX builds
       body: null
     - hash: 991e28f539276c274adccd100021c749a38b15b7
       author: Tim Perry
@@ -666,7 +672,7 @@
       body: null
     - hash: 976f84bd4b63a803442cffbe4798d364b5bf6d73
       author: Alexis Svinartchouk
-      subject: 'basic open, fstat, read, close support'
+      subject: basic open, fstat, read, close support
       body: null
     - hash: 9a615edc557e53a8f334ee7c97a3c27f558a77b2
       author: Alexis Svinartchouk
@@ -767,7 +773,7 @@
       body: null
     - hash: c61417d93b5647355a7e2d10bca06d40f8166a7c
       author: Alexis Svinartchouk
-      subject: 'handle more error cases, more tests'
+      subject: handle more error cases, more tests
       body: null
 - version: 0.0.8
   date: 2017-06-15T11:41:24.000Z
@@ -799,5 +805,5 @@
       body: null
     - hash: 5d5b2c548df8a02f324279b2bc3b1475908a7ba8
       author: Jonas Hermsmeier
-      subject: 'chore(package): Update name, add repository and metadata'
+      subject: "chore(package): Update name, add repository and metadata"
       body: null
