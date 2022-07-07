@@ -1,4 +1,15 @@
 - commits:
+    - subject: add lstat support
+      hash: c61dc2811f3f5bc9b2998f45858a4218dc1b27c3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Zane Hitchcox
+  version: 3.1.1
+  title: "'Improve symlink support'"
+  date: 2022-07-07T20:31:54.840Z
+- commits:
     - subject: add symlink support
       hash: a7e33f0068966821626ee9e86924bbc32e0dd484
       body: ""
