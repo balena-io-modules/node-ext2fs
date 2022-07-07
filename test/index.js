@@ -502,13 +502,15 @@ describe('ext2fs', () => {
 		});
 	});
 
-	describe('symlink', () => {
+	describe('symlink read/write', () => {
 		const target = '/config.txt';
 		const content = 'content\n';
 		const content2 = 'content2\n';
 		const encoding = 'utf8';
 		const symlink = '/symconfig.txt';
 		testOnAllDisksMount(async (fs) => {
+			// symlink content should be the same as the
+			// original file content after reading and writing
 			await fs.writeFileAsync(target, content, encoding);
 			await fs.symlinkAsync(target, symlink);
 			const [data] = await fs.readFileAsync(symlink, encoding);
@@ -518,6 +520,8 @@ describe('ext2fs', () => {
 			await fs.closeAsync(fd);
 			const [data2] = await fs.readFileAsync(symlink, encoding);
 			assert.strictEqual(data2, content2);
+			const [stat] = await fs.lstatAsync(symlink);
+			assert.strictEqual(stat.isSymbolicLink(), true);
 		});
 	});
 
@@ -796,6 +800,44 @@ describe('ext2fs', () => {
 				assert.strictEqual(ranges[1].offset, 3146752);
 				assert.strictEqual(ranges[1].length, 5120);
 			}
+		});
+	});
+
+	describe('readlink', () => {
+		const target = '/usr/bin/echo';
+		const linkpath = '/testlink';
+
+		testOnAllDisksMount(async (fs) => {
+			await fs.symlinkAsync(target, linkpath);
+			const [targetActual] = await fs.readlinkAsync(linkpath);
+
+			assert.strictEqual(targetActual, target);
+		});
+	});
+
+	describe('readlink non-existing', () => {
+		const filename = '/testlink';
+
+		testOnAllDisksMount(async (fs) => {
+			await assert.rejects(async() => {
+				await fs.readlinkAsync(filename);
+			}, (err) => {
+				return err.code === 'ENOENT';
+			});
+		});
+	});
+
+	describe('readlink non-link', () => {
+		const filename = '/testlink';
+
+		testOnAllDisksMount(async (fs) => {
+			await fs.writeFileAsync(filename, 'Hello, World!');
+
+			await assert.rejects(async() => {
+				await fs.readlinkAsync(filename);
+			}, (err) => {
+				return err.code === 'EINVAL';
+			});
 		});
 	});
 });
