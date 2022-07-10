@@ -51,10 +51,11 @@ function testOnAllDisks(fn) {
 
 function testOnAllDisksMount(fn) {
 	testOnAllDisks(async (disk) => {
-		await ext2fs.withMountedDisk(disk, 0, async (fs) => {
+		// eslint-disable-line no-unused-vars
+		await ext2fs.withMountedDisk(disk, 0, async (fs, fsPromises) => {
 			// Might be useful to get the disk name
 			fs.disk = disk;
-			await fn(Bluebird.promisifyAll(fs, { multiArgs: true }));
+			await fn(Bluebird.promisifyAll(fs, { multiArgs: true }), fsPromises);
 		});
 	});
 }
@@ -695,7 +696,7 @@ describe('ext2fs', () => {
 
 	describe('close all fds on umount', () => {
 		testOnAllDisks(async (disk) => {
-			const fs = Bluebird.promisifyAll(await ext2fs.mount(disk), { multiArgs: true });
+			const fs = Bluebird.promisifyAll((await ext2fs.mount(disk))[0], { multiArgs: true });
 			await fs.openAsync('/1', 'r');
 			await fs.openAsync('/2', 'r');
 			await fs.openAsync('/3', 'r');
@@ -838,6 +839,30 @@ describe('ext2fs', () => {
 			}, (err) => {
 				return err.code === 'EINVAL';
 			});
+		});
+	});
+
+	describe('file-handle open, read, close', () => {
+		testOnAllDisksMount(async (_fs, fsPromises) => {
+			const fh = await fsPromises.open('/1', 'r');
+			const buf = Buffer.allocUnsafe(4);
+			const {bytesRead, buffer} = await fh.read(buf, 0, 4, 0);
+			assert.strictEqual(bytesRead, 4);
+			assert.strictEqual(buffer.toString(), 'one\n');
+			await fh.close();
+		});
+	});
+
+	describe('writing to closed file-handle', () => {
+		testOnAllDisksMount(async (fs, fsPromises) => {
+			const fh = await fsPromises.open('/1', 'r');
+			await fh.close();
+			const str = 'hello, world';
+			try {
+				await fh.write(Buffer.from(str), 0, str.length);
+			} catch (err) {
+				assert.strictEqual(err.code, 'EBADF');
+			}
 		});
 	});
 });

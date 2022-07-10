@@ -116,6 +116,7 @@ $(glue).o: $(glue).c $(glue).h
 lib/libext2fs.js: $(OBJS) $(glue).o $(prejs)
 	$(E) "	JSGEN $@"
 	$(Q) $(CC) $(CFLAGS) $(JSFLAGS) $(OBJS) $(glue).o -o $@
+	npx prettier --write ./lib/libext2fs.js
 
 clean:
 	rm -f $(OBJS) $(glue).o lib/libext2fs.js lib/libext2fs.wasm
