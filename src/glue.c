@@ -215,13 +215,22 @@ errcode_t create_file(ext2_filsys fs, const char* path, unsigned int mode, ext2_
 	}
 	return 0;
 }
+static void get_now(struct timespec *now) {
+#ifdef CLOCK_REALTIME
+	if (!clock_gettime(CLOCK_REALTIME, now))
+		return;
+#endif
+
+	now->tv_sec = time(NULL);
+	now->tv_nsec = 0;
+}
 
 errcode_t update_xtime(ext2_file_t file, bool a, bool c, bool m) {
 	errcode_t err = 0;
 	err = ext2fs_read_inode(file->fs, file->ino, &(file->inode));
 	if (err) return err;
 	struct timespec now;
-	clock_gettime(CLOCK_REALTIME, &now);
+	get_now(&now);
 	if (a) {
 		file->inode.i_atime = now.tv_sec;
 	}
@@ -441,6 +450,87 @@ errcode_t node_ext2fs_mkdir(
 	return -ret;
 }
 
+static int node_ext2fs_link(ext2fs_filsys fs, const char *src, const char *dest)
+{
+	char *temp_path;
+	errcode_t err;
+	char *node_name, a;
+	ext2_ino_t parent, ino;
+	struct ext2_inode_large inode;
+	int ret = 0;
+
+	// dbg_printf("%s: src=%s dest=%s\n", __func__, src, dest);
+	temp_path = strdup(dest);
+	if (!temp_path) {
+		ret = -ENOMEM;
+		goto out;
+	}
+	node_name = strrchr(temp_path, '/');
+	if (!node_name) {
+		ret = -ENOMEM;
+		goto out;
+	}
+	node_name++;
+
+	err = ext2fs_namei(fs, EXT2_ROOT_INO, EXT2_ROOT_INO, temp_path, &parent);
+	if (err) {
+		ret = -ENOENT;
+		goto out;
+	}
+
+	err = ext2fs_namei(fs, EXT2_ROOT_INO, EXT2_ROOT_INO, src, &ino);
+	if (err || ino == 0) {
+		ret = translate_error(fs, 0, err);
+		goto out2;
+	}
+
+	memset(&inode, 0, sizeof(inode));
+	err = ext2fs_read_inode_full(fs, ino, (struct ext2_inode *)&inode,
+				     sizeof(inode));
+	if (err) {
+		ret = translate_error(fs, ino, err);
+		goto out2;
+	}
+
+	inode.i_links_count++;
+	ret = update_ctime(fs, ino, &inode);
+	if (ret)
+		goto out2;
+
+	err = ext2fs_write_inode_full(fs, ino, (struct ext2_inode *)&inode,
+				      sizeof(inode));
+	if (err) {
+		ret = translate_error(fs, ino, err);
+		goto out2;
+	}
+
+	dbg_printf("%s: linking ino=%d/name=%s to dir=%d\n", __func__, ino,
+		   node_name, parent);
+	err = ext2fs_link(fs, parent, node_name, ino,
+			  ext2_file_type(inode.i_mode));
+	if (err == EXT2_ET_DIR_NO_SPACE) {
+		err = ext2fs_expand_dir(fs, parent);
+		if (err) {
+			ret = translate_error(fs, parent, err);
+			goto out2;
+		}
+
+		err = ext2fs_link(fs, parent, node_name, ino,
+				     ext2_file_type(inode.i_mode));
+	}
+	if (err) {
+		ret = translate_error(fs, parent, err);
+		goto out;
+	}
+
+	ret = update_mtime(fs, parent, NULL);
+	if (ret)
+		goto out;
+
+out:
+	free(temp_path);
+	return ret;
+}
 
 errcode_t node_ext2fs_symlink(
 	ext2_filsys fs,
@@ -750,3 +840,106 @@ io_manager get_js_io_manager() {
 	js_io_manager.zeroout          =  js_zeroout_entry;
 	return &js_io_manager;
 };
+
+static int __translate_error(ext2_filsys fs, errcode_t err, ext2_ino_t ino,
+			     const char *file, int line)
+{
+	struct timespec now;
+	int ret = err;
+	int is_err = 0;
+
+	int disk_id = get_disk_id(fs->io);
+
+	/* Translate ext2 error to unix error code */
+	if (err < EXT2_ET_BASE)
+		goto no_translation;
+	switch (err) {
+	case EXT2_ET_NO_MEMORY:
+	case EXT2_ET_TDB_ERR_OOM:
+		ret = -ENOMEM;
+		break;
+	case EXT2_ET_INVALID_ARGUMENT:
+	case EXT2_ET_LLSEEK_FAILED:
+		ret = -EINVAL;
+		break;
+	case EXT2_ET_NO_DIRECTORY:
+		ret = -ENOTDIR;
+		break;
+	case EXT2_ET_FILE_NOT_FOUND:
+		ret = -ENOENT;
+		break;
+	case EXT2_ET_DIR_NO_SPACE:
+		is_err = 1;
+		/* fallthrough */
+	case EXT2_ET_TOOSMALL:
+	case EXT2_ET_BLOCK_ALLOC_FAIL:
+	case EXT2_ET_INODE_ALLOC_FAIL:
+	case EXT2_ET_EA_NO_SPACE:
+		ret = -ENOSPC;
+		break;
+	case EXT2_ET_SYMLINK_LOOP:
+		ret = -EMLINK;
+		break;
+	case EXT2_ET_FILE_TOO_BIG:
+		ret = -EFBIG;
+		break;
+	case EXT2_ET_TDB_ERR_EXISTS:
+	case EXT2_ET_FILE_EXISTS:
+		ret = -EEXIST;
+		break;
+	case EXT2_ET_MMP_FAILED:
+	case EXT2_ET_MMP_FSCK_ON:
+		ret = -EBUSY;
+		break;
+	case EXT2_ET_EA_KEY_NOT_FOUND:
+#ifdef ENODATA
+		ret = -ENODATA;
+#else
+		ret = -ENOENT;
+#endif
+		break;
+	/* Sometimes fuse returns a garbage file handle pointer to us... */
+	case EXT2_ET_MAGIC_EXT2_FILE:
+		ret = -EFAULT;
+		break;
+	case EXT2_ET_UNIMPLEMENTED:
+		ret = -EOPNOTSUPP;
+		break;
+	default:
+		is_err = 1;
+		ret = -EIO;
+		break;
+	}
+
+no_translation:
+	if (!is_err)
+		return ret;
+
+	if (ino)
+		printf("node_ext2fs (%d): (inode #%d) at %s:%d.\n", disk_id, ino, file, line);
+	else
+		printf("node_ext2fs (%d): at %s:%d.\n", disk_id, file, line);
+
+	/* Make a note in the error log */
+	get_now(&now);
+	fs->super->s_last_error_time = now.tv_sec;
+	fs->super->s_last_error_ino = ino;
+	fs->super->s_last_error_line = line;
+	fs->super->s_last_error_block = err; /* Yeah... */
+	strncpy((char *)fs->super->s_last_error_func, file,
+		sizeof(fs->super->s_last_error_func));
+	if (fs->super->s_first_error_time == 0) {
+		fs->super->s_first_error_time = now.tv_sec;
+		fs->super->s_first_error_ino = ino;
+		fs->super->s_first_error_line = line;
+		fs->super->s_first_error_block = err;
+		strncpy((char *)fs->super->s_first_error_func, file,
+			sizeof(fs->super->s_first_error_func));
+	}
+
+	fs->super->s_error_count++;
+	ext2fs_mark_super_dirty(fs);
+	ext2fs_flush(fs);
+
+	return ret;
+}

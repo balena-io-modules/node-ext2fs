@@ -602,6 +602,17 @@ describe('ext2fs', () => {
 		});
 	});
 
+	describe('lchmod', () => {
+		const target = '/usr/bin/chmod';
+		const linkpath = '/1.link';
+		testOnAllDisksMount(async (fs) => {
+			await fs.symlinkAsync(target, linkpath);
+			await fs.lchmodAsync(linkpath, 0o137);
+			const [lstats] = await fs.lstatAsync(linkpath);
+			assert.strictEqual(humanFileMode(fs, lstats), '---x-wxrwx');
+		});
+	});
+
 	describe('fchmod a folder', () => {
 		testOnAllDisksMount(async (fs) => {
 			const [fd] = await fs.openAsync('/lost+found', 'r');
@@ -657,6 +668,18 @@ describe('ext2fs', () => {
 			const [stats] = await fs.statAsync(path);
 			assert.strictEqual(stats.uid, 2000);
 			assert.strictEqual(stats.gid, 3000);
+		});
+	});
+
+	describe('lchown', () => {
+		const target = '/usr/bin/echo';
+		const linkpath = '/testlink';
+		testOnAllDisksMount(async (fs) => {
+			await fs.symlinkAsync(target, linkpath);
+			await fs.lchownAsync(linkpath, 5000, 6000);
+			const [stats] = await fs.lstatAsync(linkpath);
+			assert.strictEqual(stats.uid, 5000);
+			assert.strictEqual(stats.gid, 6000);
 		});
 	});
 
