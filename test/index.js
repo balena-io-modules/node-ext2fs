@@ -419,7 +419,9 @@ describe('ext2fs', () => {
 	describe('unlink a directory', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.unlinkAsync('/lost+found');
+				const dirname = '/mydir';
+				await fs.mkdirAsync(dirname);
+				await fs.unlinkAsync(dirname);
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.code, 'EISDIR');
@@ -566,6 +568,8 @@ describe('ext2fs', () => {
 			assert.strictEqual(bytesRead, 8);
 			const dataStr = data2.slice(0, bytesRead).toString();
 			assert.strictEqual(dataStr, 'one\ntwo\n');
+			const [content] = await fs.readFileAsync('/1', 'utf8');
+			assert.strictEqual(content, 'one\ntwo\n');
 			await fs.closeAsync(fd);
 		});
 	});
@@ -672,7 +676,7 @@ describe('ext2fs', () => {
 	});
 
 	describe('lchown', () => {
-		const target = '/usr/bin/echo';
+		const target = '/1';
 		const linkpath = '/testlink';
 		testOnAllDisksMount(async (fs) => {
 			await fs.symlinkAsync(target, linkpath);
