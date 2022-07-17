@@ -869,6 +869,35 @@ describe('ext2fs', () => {
 		});
 	});
 
+	describe('rename', () => {
+		const oldName = '/1';
+		const newName = '/100';
+
+		testOnAllDisksMount(async (_fs, fs) => {
+			const oldStat = await fs.stat(oldName);
+			await fs.rename(oldName, newName);
+			try {
+				await fs.stat(oldName);
+			} catch (err) {
+				assert.strictEqual(err.code, 'ENOENT');
+			}
+			const newStat = await fs.stat(newName);
+			assert(oldStat.ino === newStat.ino);
+		});
+	});
+
+	describe('link', () => {
+		const src = '/1';
+		const dst = '/100';
+
+		testOnAllDisksMount(async (_fs, fs) => {
+			await fs.link(src, dst);
+			const srcStat = await fs.stat(src);
+			const dstStat = await fs.stat(dst);
+			assert(srcStat.ino === dstStat.ino);
+		});
+	});
+
 	describe('file-handle open, read, close', () => {
 		testOnAllDisksMount(async (_fs, fsPromises) => {
 			const fh = await fsPromises.open('/1', 'r');
