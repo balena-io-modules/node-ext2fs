@@ -1,4 +1,15 @@
 - commits:
+    - subject: support node 12
+      hash: 64007eacee103838fdc90b52886301cb6d55e228
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Zane Hitchcox
+  version: 4.0.1
+  title: "'support node 12'"
+  date: 2022-07-17T18:34:38.483Z
+- commits:
     - subject: Add fsPromises to API
       hash: d005486ac5a23fd32753ff7f78fc0cac6c846677
       body: >
