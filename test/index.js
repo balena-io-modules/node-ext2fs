@@ -51,10 +51,11 @@ function testOnAllDisks(fn) {
 
 function testOnAllDisksMount(fn) {
 	testOnAllDisks(async (disk) => {
-		await ext2fs.withMountedDisk(disk, 0, async (fs) => {
+		// eslint-disable-line no-unused-vars
+		await ext2fs.withMountedDisk(disk, 0, async (fs, fsPromises) => {
 			// Might be useful to get the disk name
 			fs.disk = disk;
-			await fn(Bluebird.promisifyAll(fs, { multiArgs: true }));
+			await fn(Bluebird.promisifyAll(fs, { multiArgs: true }), fsPromises);
 		});
 	});
 }
@@ -418,7 +419,9 @@ describe('ext2fs', () => {
 	describe('unlink a directory', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.unlinkAsync('/lost+found');
+				const dirname = '/mydir';
+				await fs.mkdirAsync(dirname);
+				await fs.unlinkAsync(dirname);
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.code, 'EISDIR');
@@ -565,6 +568,8 @@ describe('ext2fs', () => {
 			assert.strictEqual(bytesRead, 8);
 			const dataStr = data2.slice(0, bytesRead).toString();
 			assert.strictEqual(dataStr, 'one\ntwo\n');
+			const [content] = await fs.readFileAsync('/1', 'utf8');
+			assert.strictEqual(content, 'one\ntwo\n');
 			await fs.closeAsync(fd);
 		});
 	});
@@ -598,6 +603,17 @@ describe('ext2fs', () => {
 			const [stats] = await fs.fstatAsync(fd);
 			assert.strictEqual(humanFileMode(fs, stats), '---x-wxrwx');
 			await fs.closeAsync(fd);
+		});
+	});
+
+	describe('lchmod', () => {
+		const target = '/usr/bin/chmod';
+		const linkpath = '/1.link';
+		testOnAllDisksMount(async (fs) => {
+			await fs.symlinkAsync(target, linkpath);
+			await fs.lchmodAsync(linkpath, 0o137);
+			const [lstats] = await fs.lstatAsync(linkpath);
+			assert.strictEqual(humanFileMode(fs, lstats), '---x-wxrwx');
 		});
 	});
 
@@ -659,6 +675,18 @@ describe('ext2fs', () => {
 		});
 	});
 
+	describe('lchown', () => {
+		const target = '/1';
+		const linkpath = '/testlink';
+		testOnAllDisksMount(async (fs) => {
+			await fs.symlinkAsync(target, linkpath);
+			await fs.lchownAsync(linkpath, 5000, 6000);
+			const [stats] = await fs.lstatAsync(linkpath);
+			assert.strictEqual(stats.uid, 5000);
+			assert.strictEqual(stats.gid, 6000);
+		});
+	});
+
 	describe('O_EXCL', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
@@ -695,7 +723,7 @@ describe('ext2fs', () => {
 
 	describe('close all fds on umount', () => {
 		testOnAllDisks(async (disk) => {
-			const fs = Bluebird.promisifyAll(await ext2fs.mount(disk), { multiArgs: true });
+			const fs = Bluebird.promisifyAll((await ext2fs.mount(disk))[0], { multiArgs: true });
 			await fs.openAsync('/1', 'r');
 			await fs.openAsync('/2', 'r');
 			await fs.openAsync('/3', 'r');
@@ -838,6 +866,59 @@ describe('ext2fs', () => {
 			}, (err) => {
 				return err.code === 'EINVAL';
 			});
+		});
+	});
+
+	describe('rename', () => {
+		const oldName = '/1';
+		const newName = '/100';
+
+		testOnAllDisksMount(async (_fs, fs) => {
+			const oldStat = await fs.stat(oldName);
+			await fs.rename(oldName, newName);
+			try {
+				await fs.stat(oldName);
+			} catch (err) {
+				assert.strictEqual(err.code, 'ENOENT');
+			}
+			const newStat = await fs.stat(newName);
+			assert(oldStat.ino === newStat.ino);
+		});
+	});
+
+	describe('link', () => {
+		const src = '/1';
+		const dst = '/100';
+
+		testOnAllDisksMount(async (_fs, fs) => {
+			await fs.link(src, dst);
+			const srcStat = await fs.stat(src);
+			const dstStat = await fs.stat(dst);
+			assert(srcStat.ino === dstStat.ino);
+		});
+	});
+
+	describe('file-handle open, read, close', () => {
+		testOnAllDisksMount(async (_fs, fsPromises) => {
+			const fh = await fsPromises.open('/1', 'r');
+			const buf = Buffer.allocUnsafe(4);
+			const {bytesRead, buffer} = await fh.read(buf, 0, 4, 0);
+			assert.strictEqual(bytesRead, 4);
+			assert.strictEqual(buffer.toString(), 'one\n');
+			await fh.close();
+		});
+	});
+
+	describe('writing to closed file-handle', () => {
+		testOnAllDisksMount(async (fs, fsPromises) => {
+			const fh = await fsPromises.open('/1', 'r');
+			await fh.close();
+			const str = 'hello, world';
+			try {
+				await fh.write(Buffer.from(str), 0, str.length);
+			} catch (err) {
+				assert.strictEqual(err.code, 'EBADF');
+			}
 		});
 	});
 });

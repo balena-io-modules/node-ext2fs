@@ -61,10 +61,9 @@ async function main() {
         try {
                 await withOpenFile(diskImage, 'r', async (handle) => {
                         const disk = new FileDisk(handle);
-                        await withMountedDisk(disk, offset, async (fs) => {
-                                const readdir = promisify(fs.readdir);
+                        await withMountedDisk(disk, offset, async (fs, fsPromises) => {
 				// List files
-                                console.log('readdir', await readdir('/'));
+                                console.log('readdir', await fsPromises.readdir('/'));
                                 await fs.trim();
 				// Show discarded regions
                                 console.log('discarded', disk.getDiscardedChunks());
