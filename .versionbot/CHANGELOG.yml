@@ -1,4 +1,20 @@
 - commits:
+    - subject: Add fsPromises to API
+      hash: d005486ac5a23fd32753ff7f78fc0cac6c846677
+      body: >
+        When mounting a disk with `withMountedDisk`, a second `fsPromises`
+        argument will be passed along with the normal `fs` argument. This object
+        follows the Node `fsPromises` API
+        (https://nodejs.org/api/fs.html#promises-api), just as the `fs` argument
+        follows the Node `fs` callback API.
+      footer:
+        Change-type: major
+        change-type: major
+      author: Zane Hitchcox
+  version: 4.0.0
+  title: "'Add Promise API and Refactor'"
+  date: 2022-07-17T01:14:02.169Z
+- commits:
     - subject: add lstat support
       hash: c61dc2811f3f5bc9b2998f45858a4218dc1b27c3
       body: ""
