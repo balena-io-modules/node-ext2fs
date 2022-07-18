@@ -1,4 +1,19 @@
 - commits:
+    - subject: Fix breaking change with promises
+      hash: 54dfc771023f22bcdde9962e73946bafcffd371f
+      body: >
+        The previous version introduced a breaking change, where ext2fs.mount
+        would return a tuple of [fs, fsPromises]. This undoes that change and
+        just returns fs, with the promises api as a property of fs, i.e.
+        fs.promises.
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Zane Hitchcox
+  version: 4.1.0
+  title: "'Backward compatible'"
+  date: 2022-07-18T16:54:24.657Z
+- commits:
     - subject: support node 12
       hash: 64007eacee103838fdc90b52886301cb6d55e228
       body: ""
