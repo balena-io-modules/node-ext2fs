@@ -16,8 +16,7 @@ Some things you can do with this module:
 * Create a tar archive from a filesystem image
 * Perform a TRIM operation to obtain discard regions of a filesystem
 
-Installation
-------------
+## Installation
 
 Simply install `node-ext2fs` using `npm`:
 
@@ -25,24 +24,8 @@ Simply install `node-ext2fs` using `npm`:
 $ npm install node-ext2fs
 ```
 
-Building
---------
 
-Prerequisites:
-
-* git
-* make
-* [`emcc` >= 2.0.7](https://emscripten.org/docs/getting_started/downloads.html)
-
-```
-git clone --recursive https://github.com/balena-io-modules/node-ext2fs # clone the repository
-cd  node-ext2fs
-npm i
-npm run build
-```
-
-Usage
------
+## Usage
 
 Mount a disk image and use the returned `fs` object.
 The fs returned object behaves like node's `fs` except it doesn't provide any
@@ -51,13 +34,11 @@ You can also issue `DISCARD` requests using the fs `async trim()` method.
 
 See the example below.
 
-Example
--------
+## Example
 
 ```javascript
 const { withMountedDisk } = require('ext2fs');
 const { FileDisk, withOpenFile } = require('file-disk');
-const { promisify } = require('util');
 
 async function main() {
   const diskImage = '/some/disk.image';
@@ -81,14 +62,50 @@ async function main() {
 }
 
 ```
+## Building
 
-Support
--------
+- Prerequisites
+  * git
+  * make
+  * NodeJS >=v12
+
+
+- Install emscripten
+```
+# Get the emsdk repo
+git clone https://github.com/emscripten-core/emsdk.git
+
+# Enter that directory
+cd emsdk
+
+# Download and install the latest SDK tools.
+./emsdk install latest
+
+# Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+./emsdk activate latest
+
+# Activate PATH and other environment variables in the current terminal
+source ./emsdk_env.sh
+```
+
+- Clone recursively
+```
+# You must clone recursively in order to get the dependency
+git clone --recursive https://github.com/balena-io-modules/node-ext2fs
+```
+
+- Build
+```
+cd node-ext2fs
+npm i
+npm run build
+```
+
+## Support
 
 If you're having any problems, please [raise an issue][github-issue] on GitHub.
 
-License
--------
+## License
 
 node-ext2fs is free software, and may be redistributed under the terms specified
 in the [license].
