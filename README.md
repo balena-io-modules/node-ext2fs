@@ -28,13 +28,17 @@ $ npm install node-ext2fs
 Building
 --------
 
-To build `node-ext2fs` you need to have `make` and `emcc` from emscripten >= 2.0.7 available on your
-environment.
+Prerequisites:
 
-Build `node-ext2fs` using `npm`:
+* git
+* make
+* [`emcc` >= 2.0.7](https://emscripten.org/docs/getting_started/downloads.html)
 
-``` bash
-$ npm run build
+```
+git clone --recursive https://github.com/balena-io-modules/node-ext2fs # clone the repository
+cd  node-ext2fs
+npm i
+npm run build
 ```
 
 Usage
@@ -56,25 +60,24 @@ const { FileDisk, withOpenFile } = require('file-disk');
 const { promisify } = require('util');
 
 async function main() {
-	const diskImage = '/some/disk.image';
-	const offset = 272629760;  // offset of the ext partition you want to mount in that disk image
-        try {
-                await withOpenFile(diskImage, 'r', async (handle) => {
-                        const disk = new FileDisk(handle);
-                        await withMountedDisk(disk, offset, async (fs) => {
-                                const readdir = promisify(fs.readdir);
-				// List files
-                                console.log('readdir', await readdir('/'));
-                                await fs.trim();
-				// Show discarded regions
-                                console.log('discarded', disk.getDiscardedChunks());
-				// Show ranges of useful data aligned to 1MiB
-                                console.log('ranges', await disk.getRanges(1024 ** 2));
-                        });
-                });
-        } catch (error) {
-                console.error(error);
-        }
+  const diskImage = '/some/disk.image';
+  const offset = 272629760;  // offset of the ext partition you want to mount in that disk image
+  try {
+    await withOpenFile(diskImage, 'r', async (handle) => {
+      const disk = new FileDisk(handle);
+      await withMountedDisk(disk, offset, async (fs, fsPromises) => {
+        // List files
+        console.log('readdir', await fsPromises.readdir('/'));
+        await fs.trim();
+        // Show discarded regions
+        console.log('discarded', disk.getDiscardedChunks());
+        // Show ranges of useful data aligned to 1MiB
+        console.log('ranges', await disk.getRanges(1024 ** 2));
+      });
+    });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 ```

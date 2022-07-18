@@ -3,3 +3,4 @@ node_modules
 *.wasm
 package-lock.json
 lib/libext2fs.js
+.vscode
