@@ -99,60 +99,52 @@ EM_JS(void, array_push_buffer, (int array_id, char* value, int len), {
 	Module.getObject(array_id).push(buffer);
 });
 
-EM_JS(errcode_t, blk_read, (int disk_id, short block_size, unsigned long block, unsigned long count, void *data), {
-	return Asyncify.handleAsync(async () => {
-		const offset = block * block_size;
-		const size = count < 0 ? -count : count * block_size;
-		const buffer = Module.getBuffer(data, size);
-		const disk = Module.getObject(disk_id);
-		try {
-			await disk.read(buffer, 0, buffer.length, offset);
-			return 0;
-		} catch (error) {
-			return Module.EIO;
-		}
-	});
+EM_ASYNC_JS(errcode_t, blk_read, (int disk_id, short block_size, unsigned long block, unsigned long count, void *data), {
+	const offset = block * block_size;
+	const size = count < 0 ? -count : count * block_size;
+	const buffer = Module.getBuffer(data, size);
+	const disk = Module.getObject(disk_id);
+	try {
+		await disk.read(buffer, 0, buffer.length, offset);
+		return 0;
+	} catch (error) {
+		return Module.EIO;
+	}
 });
 
-EM_JS(errcode_t, blk_write, (int disk_id, short block_size, unsigned long block, unsigned long count, const void *data), {
-	return Asyncify.handleAsync(async () => {
-		const offset = block * block_size;
-		const size = count < 0 ? -count : count * block_size;
-		const buffer = Module.getBuffer(data, size);
-		const disk = Module.getObject(disk_id);
-		try {
-			await disk.write(buffer, 0, buffer.length, offset);
-			return 0;
-		} catch (error) {
-			return Module.EIO;
-		}
-	});
+EM_ASYNC_JS(errcode_t, blk_write, (int disk_id, short block_size, unsigned long block, unsigned long count, const void *data), {
+	const offset = block * block_size;
+	const size = count < 0 ? -count : count * block_size;
+	const buffer = Module.getBuffer(data, size);
+	const disk = Module.getObject(disk_id);
+	try {
+		await disk.write(buffer, 0, buffer.length, offset);
+		return 0;
+	} catch (error) {
+		return Module.EIO;
+	}
 });
 
-EM_JS(errcode_t, discard, (int disk_id, short block_size, unsigned long block, unsigned long count), {
-	return Asyncify.handleAsync(async () => {
-		const disk = Module.getObject(disk_id);
-		const offset = block * block_size;
-		const size = count < 0 ? -count : count * block_size;
-		try {
-			await disk.discard(offset, size);
-			return 0;
-		} catch (error) {
-			return Module.EIO;
-		}
-	});
+EM_ASYNC_JS(errcode_t, discard, (int disk_id, short block_size, unsigned long block, unsigned long count), {
+	const disk = Module.getObject(disk_id);
+	const offset = block * block_size;
+	const size = count < 0 ? -count : count * block_size;
+	try {
+		await disk.discard(offset, size);
+		return 0;
+	} catch (error) {
+		return Module.EIO;
+	}
 });
 
-EM_JS(errcode_t, flush, (int disk_id), {
-	return Asyncify.handleAsync(async () => {
-		const disk = Module.getObject(disk_id);
-		try {
-			await disk.flush();
-			return 0;
-		} catch (error) {
-			return Module.EIO;
-		}
-	});
+EM_ASYNC_JS(errcode_t, flush, (int disk_id), {
+	const disk = Module.getObject(disk_id);
+	try {
+		await disk.flush();
+		return 0;
+	} catch (error) {
+		return Module.EIO;
+	}
 });
 
 // Utils ------------------
