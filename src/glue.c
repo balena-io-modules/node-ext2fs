@@ -1478,6 +1478,7 @@ static errcode_t js_zeroout_entry(io_channel channel, unsigned long long block, 
 	char *data = malloc(size);
 	memset(data, 0, size);
 	errcode_t ret = blk_write(disk_id, channel->block_size, block, count, data);
+	free(data);
 	if (ret) return ret;
 	return discard(disk_id, channel->block_size, block, count);
 }
