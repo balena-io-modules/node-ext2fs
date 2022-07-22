@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fixed memory leak in js_zeroout_entry
+      hash: 669e85e92ca9b98b9135aa5c86f1a64b5305a523
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Simon Kadisch
+  version: 4.1.1
+  title: "'Fixed memory leak in js_zeroout_entry'"
+  date: 2022-07-22T14:41:17.962Z
+- commits:
     - subject: Fix breaking change with promises
       hash: 54dfc771023f22bcdde9962e73946bafcffd371f
       body: >
