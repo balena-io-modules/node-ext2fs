@@ -1,6 +1,6 @@
 {
   "name": "ext2fs",
-  "version": "3.1.0",
+  "version": "4.1.0",
   "description": "WASM bindings to libext2fs for cross-platform ext filesystem handling",
   "author": "Petros Angelatos <petrosagg@balena.io>",
   "contributors": [
@@ -24,7 +24,8 @@
     "bluebird": "^3.7.2",
     "eslint": "^7.5.0",
     "file-disk": "^8.0.0",
-    "mocha": "^8.2.1"
+    "mocha": "^8.2.1",
+    "prettier": "^2.7.1"
   },
   "homepage": "https://github.com/balena-io/node-ext2fs#readme",
   "repository": {
@@ -45,6 +46,6 @@
   },
   "dependencies": {},
   "versionist": {
-    "publishedAt": "2022-06-14T02:08:48.857Z"
+    "publishedAt": "2022-07-18T16:54:24.746Z"
   }
 }

@@ -51,10 +51,11 @@ function testOnAllDisks(fn) {
 
 function testOnAllDisksMount(fn) {
 	testOnAllDisks(async (disk) => {
-		await ext2fs.withMountedDisk(disk, 0, async (fs) => {
+		// eslint-disable-line no-unused-vars
+		await ext2fs.withMountedDisk(disk, 0, async ({promises:fs}) => {
 			// Might be useful to get the disk name
 			fs.disk = disk;
-			await fn(Bluebird.promisifyAll(fs, { multiArgs: true }));
+			await fn(fs);
 		});
 	});
 }
@@ -115,9 +116,9 @@ describe('ext2fs', () => {
 			const buffer = Buffer.allocUnsafe(data.length + offset);
 			data.copy(buffer, offset);
 			const disk = new filedisk.BufferDisk(buffer, true, true);
-			await ext2fs.withMountedDisk(disk, offset, async (fs) => {
+			await ext2fs.withMountedDisk(disk, offset, async ({promises:fs}) => {
 				fs = Bluebird.promisifyAll(fs, { multiArgs: true });
-				const [files] = await fs.readdirAsync('/');
+				const files = await fs.readdir('/');
 				files.sort();
 				assert.deepEqual(files, [ '1', '2', '3', '4', '5', 'lost+found' ]);
 			});
@@ -127,17 +128,17 @@ describe('ext2fs', () => {
 	describe('mount, open, read, close, umount', () => {
 		testOnAllDisksMount(async (fs) => {
 			const buffer = Buffer.allocUnsafe(4);
-			const [fd] = await fs.openAsync('/1', 'r');
-			const [bytesRead, buf] = await fs.readAsync(fd, buffer, 0, 4, 0);
+			const fh = await fs.open('/1', 'r');
+			const {bytesRead, buffer:buf} = await fh.read(buffer, 0, 4, 0);
 			assert.strictEqual(bytesRead, 4);
 			assert.strictEqual(buf.toString(), 'one\n');
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
 	describe('mount, stat, umount', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [stats] = await fs.statAsync('/2');
+			const stats = await fs.stat('/2');
 			assert.strictEqual(stats.dev, 0);
 			assert.strictEqual(stats.mode, 33188);
 			assert.strictEqual(stats.nlink, 1);
@@ -173,8 +174,8 @@ describe('ext2fs', () => {
 
 	describe('mount, open, fstat, close, umount', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [fd] = await fs.openAsync('/2', fs.constants.O_RDONLY | fs.constants.O_NOATIME);
-			const [stats] = await fs.fstatAsync(fd);
+			const fh = await fs.open('/2', fs.constants.O_RDONLY | fs.constants.O_NOATIME);
+			const stats = await fh.stat();
 			assert.strictEqual(stats.dev, 0);
 			assert.strictEqual(stats.mode, 33188);
 			assert.strictEqual(stats.nlink, 1);
@@ -205,7 +206,7 @@ describe('ext2fs', () => {
 				stats.birthtime.getTime(),
 				(new Date('2017-05-23T18:56:47.000Z')).getTime()
 			);
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
@@ -213,24 +214,24 @@ describe('ext2fs', () => {
 		testOnAllDisksMount(async (fs) => {
 			const string = 'hello';
 			const buf = Buffer.from(string);
-			const [fd] = await fs.openAsync('/2', 'w');
-			await fs.writeAsync(fd, buf, 0, buf.length, 0);
-			const [stats] = await fs.fstatAsync(fd);
+			const fh = await fs.open('/2', 'w');
+			await fh.write(buf, 0, buf.length, 0);
+			const stats = await fh.stat();
 			// ctime, mtime and birthtime should change
 			const now = Date.now();
 			assert(now - stats.ctime.getTime() < 3000);
 			assert(now - stats.mtime.getTime() < 3000);
 			assert(now - stats.birthtime.getTime() < 3000);
 			assert.strictEqual(stats.size, 5);
-			await fs.closeAsync(fd);
-			const [fd2] = await fs.openAsync('/2', 'r');
-			const [bytesRead, buf2] = await fs.readAsync(fd2, buf, 0, buf.length, 0);
+			await fh.close();
+			const fh2 = await fs.open('/2', 'r');
+			const {bytesRead, buffer:buf2} = await fh2.read(buf, 0, buf.length, 0);
 			assert.strictEqual(bytesRead, 5);
 			assert.strictEqual(buf2.toString(), string);
-			const [stats2] = await fs.fstatAsync(fd2);
+			const stats2 = await fh2.stat();
 			assert(Date.now() - stats2.atime.getTime() < 1000);
 			assert.strictEqual(stats2.size, 5);
-			await fs.closeAsync(fd2);
+			await fh2.close();
 		});
 	});
 
@@ -238,14 +239,14 @@ describe('ext2fs', () => {
 		testOnAllDisksMount(async (fs) => {
 			const string = 'hello';
 			const buffer = Buffer.alloc(string.length);
-			const [fd] = await fs.openAsync('/9', 'w+');
-			const [bytesWritten, s] = await fs.writeAsync(fd, string);
+			const fh = await fs.open('/9', 'w+');
+			const {bytesWritten, buffer:s} = await fh.write(string);
 			assert.strictEqual(bytesWritten, string.length);
 			assert.strictEqual(s, string);
-			const [bytesRead, buf] = await fs.readAsync(fd, buffer, 0, buffer.length, 0);
+			const {bytesRead, buffer:buf} = await fh.read(buffer, 0, buffer.length, 0);
 			assert.strictEqual(bytesRead, 5);
 			assert.strictEqual(buf.toString(), string);
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
@@ -254,14 +255,14 @@ describe('ext2fs', () => {
 		const content = 'six\n';
 		testOnAllDisksMount(async (fs) => {
 			const buf = Buffer.from(content);
-			const [fd] = await fs.openAsync(path, 'w+', 0o777);
-			const [bytesWritten] = await fs.writeAsync(fd, buf, 0, buf.length, 0);
+			const {fd} = await fs.open(path, 'w+', 0o777);
+			const {bytesWritten} = await fs.write(fd, buf, 0, buf.length, 0);
 			assert.strictEqual(bytesWritten, buf.length);
 			assert.strictEqual(buf.toString(), content);
-			const [statsBeforeClose] = await fs.fstatAsync(fd);
-			await fs.closeAsync(fd);
-			const [fd2] = await fs.openAsync(path, 'r');
-			const [stats] = await fs.fstatAsync(fd2);
+			const statsBeforeClose = await fs.fstat(fd);
+			await fs.close(fd);
+			const {fd:fd2} = await fs.open(path, 'r');
+			const stats = await fs.fstat(fd2);
 			// compare the 2 Stats objects
 			let value, otherValue;
 			for (let key of Object.keys(statsBeforeClose)) {
@@ -292,23 +293,23 @@ describe('ext2fs', () => {
 			assert(now - stats.mtime.getTime() < 3000);
 			assert(now - stats.birthtime.getTime() < 3000);
 			buf.fill(0);
-			const [bytesRead] = await fs.readAsync(fd2, buf, 0, 1024, 0);
+			const {bytesRead} = await fs.read(fd2, buf, 0, 1024, 0);
 			assert.strictEqual(bytesRead, content.length);
 			assert.strictEqual(buf.toString(), content);
-			await fs.closeAsync(fd2);
+			await fs.close(fd2);
 		});
 	});
 
 	describe('mount, readFile, umount', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [data] = await fs.readFileAsync('/1', 'utf8');
+			const data = await fs.readFile('/1', 'utf8');
 			assert.strictEqual(data, 'one\n');
 		});
 	});
 
 	describe('mount, readdir, umount', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [filenames] = await fs.readdirAsync('/');
+			const filenames = await fs.readdir('/');
 			filenames.sort();
 			assert.deepEqual(
 				filenames,
@@ -322,16 +323,16 @@ describe('ext2fs', () => {
 			const size = Math.pow(1024, 2);
 			const buf = Buffer.allocUnsafe(size);
 			buf.fill(1);
-			const [fd] = await fs.openAsync('/8', 'w+');
-			const [bytesWritten] = await fs.writeAsync(fd, buf, 0, size, 0);
+			const fh = await fs.open('/8', 'w+');
+			const {bytesWritten} = await fh.write(buf, 0, size, 0);
 			assert.strictEqual(bytesWritten, size);
 			buf.fill(0);
-			const [bytesRead] = await fs.readAsync(fd, buf, 0, size, 0);
+			const {bytesRead} = await fh.read(buf, 0, size, 0);
 			const buf2 = Buffer.allocUnsafe(size);
 			buf2.fill(1);
 			assert.strictEqual(bytesRead, size);
 			assert(buf.equals(buf2));
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
@@ -339,7 +340,7 @@ describe('ext2fs', () => {
 	describe('open non existent file for reading', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.openAsync('/7', 'r');
+				await fs.open('/7', 'r');
 				assert(false);
 			} catch (err) {
 				assert.strictEqual(err.errno, 44);
@@ -351,7 +352,7 @@ describe('ext2fs', () => {
 	describe('create file in non existent folder', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.openAsync('/7/8', 'w');
+				await fs.open('/7/8', 'w');
 				assert(false);
 			} catch(err) {
 				assert.strictEqual(err.errno, 54);
@@ -362,8 +363,8 @@ describe('ext2fs', () => {
 
 	describe('rmdir', () => {
 		testOnAllDisksMount(async (fs) => {
-			await fs.rmdirAsync('/lost+found');
-			const [files] = await fs.readdirAsync('/');
+			await fs.rmdir('/lost+found');
+			const files = await fs.readdir('/');
 			files.sort();
 			assert.deepEqual(files, [ '1', '2', '3', '4', '5' ]);
 		});
@@ -372,7 +373,7 @@ describe('ext2fs', () => {
 	describe('rmdir a folder that does not exist', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.rmdirAsync('/no-such-folder');
+				await fs.rmdir('/no-such-folder');
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.code, 'ENOENT');
@@ -384,7 +385,7 @@ describe('ext2fs', () => {
 	describe('rmdir a file', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.rmdirAsync('/1');
+				await fs.rmdir('/1');
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.code, 'ENOTDIR');
@@ -395,9 +396,9 @@ describe('ext2fs', () => {
 
 	describe('unlink', () => {
 		testOnAllDisksMount(async (fs) => {
-			await fs.unlinkAsync('/1');
-			await fs.unlinkAsync(Buffer.from('/2'));
-			const [files] = await fs.readdirAsync('/');
+			await fs.unlink('/1');
+			await fs.unlink(Buffer.from('/2'));
+			const files = await fs.readdir('/');
 			files.sort();
 			assert.deepEqual(files, [ '3', '4', '5', 'lost+found' ]);
 		});
@@ -406,7 +407,7 @@ describe('ext2fs', () => {
 	describe('unlink a file that does not exist', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.unlinkAsync('/no-such-file');
+				await fs.unlink('/no-such-file');
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.code, 'ENOENT');
@@ -418,7 +419,9 @@ describe('ext2fs', () => {
 	describe('unlink a directory', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.unlinkAsync('/lost+found');
+				const dirname = '/mydir';
+				await fs.mkdir(dirname);
+				await fs.unlink(dirname);
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.code, 'EISDIR');
@@ -429,14 +432,14 @@ describe('ext2fs', () => {
 
 	describe('access', () => {
 		testOnAllDisksMount(async (fs) => {
-			await fs.accessAsync('/1');
+			await fs.access('/1');
 		});
 	});
 
 	describe('execute access on a file that can not be executed', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.accessAsync('/1', fs.constants.X_OK);
+				await fs.access('/1', fs.constants.X_OK);
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.code, 'EACCES');
@@ -447,8 +450,8 @@ describe('ext2fs', () => {
 
 	describe('mkdir', () => {
 		testOnAllDisksMount(async (fs) => {
-			await fs.mkdirAsync('/new-folder');
-			const [files] = await fs.readdirAsync('/');
+			await fs.mkdir('/new-folder');
+			const files = await fs.readdir('/');
 			files.sort();
 			assert.deepEqual(
 				files,
@@ -459,8 +462,8 @@ describe('ext2fs', () => {
 
 	describe('mkdir with slashes at the end of the path', () => {
 		testOnAllDisksMount(async (fs) => {
-			await fs.mkdirAsync(Buffer.from('/new-folder//////'));
-			const [files] = await fs.readdirAsync('/');
+			await fs.mkdir(Buffer.from('/new-folder//////'));
+			const files = await fs.readdir('/');
 			files.sort();
 			assert.deepEqual(
 				files,
@@ -471,33 +474,33 @@ describe('ext2fs', () => {
 
 	describe('unlink in a directory that is not /', () => {
 		testOnAllDisksMount(async (fs) => {
-			await fs.mkdirAsync('/new-folder-2');
-			const [files] = await fs.readdirAsync('/');
+			await fs.mkdir('/new-folder-2');
+			const files = await fs.readdir('/');
 			files.sort();
 			assert.deepEqual(
 				files,
 				[ '1', '2', '3', '4', '5', 'lost+found', 'new-folder-2' ]
 			);
 			// Also test trailing slashes removal
-			await fs.writeFileAsync('/new-folder-2/filename////', 'some-data');
-			const [files2] = await fs.readdirAsync('/new-folder-2');
+			await fs.writeFile('/new-folder-2/filename////', 'some-data');
+			const files2 = await fs.readdir('/new-folder-2');
 			assert.deepEqual(files2, ['filename']);
-			await fs.unlinkAsync('/new-folder-2/filename');
-			const [files3] = await fs.readdirAsync('/new-folder-2');
+			await fs.unlink('/new-folder-2/filename');
+			const files3 = await fs.readdir('/new-folder-2');
 			assert.deepEqual(files3, []);
 		});
 	});
 
 	describe('mkdir specific mode', () => {
 		testOnAllDisksMount(async (fs) => {
-			await fs.mkdirAsync('/new-folder', 0o467);
-			const [files] = await fs.readdirAsync('/');
+			await fs.mkdir('/new-folder', 0o467);
+			const files = await fs.readdir('/');
 			files.sort();
 			assert.deepEqual(
 				files,
 				[ '1', '2', '3', '4', '5', 'lost+found', 'new-folder' ]
 			);
-			const [stats] = await fs.statAsync('/new-folder');
+			const stats = await fs.stat('/new-folder');
 			assert.strictEqual(humanFileMode(fs, stats), 'dr--rw-rwx');
 		});
 	});
@@ -511,68 +514,70 @@ describe('ext2fs', () => {
 		testOnAllDisksMount(async (fs) => {
 			// symlink content should be the same as the
 			// original file content after reading and writing
-			await fs.writeFileAsync(target, content, encoding);
-			await fs.symlinkAsync(target, symlink);
-			const [data] = await fs.readFileAsync(symlink, encoding);
+			await fs.writeFile(target, content, encoding);
+			await fs.symlink(target, symlink);
+			const data = await fs.readFile(symlink, encoding);
 			assert.strictEqual(data, content);
-			const [fd] = await fs.openAsync(symlink, 'w+');
-			await fs.writeAsync(fd, content2);
-			await fs.closeAsync(fd);
-			const [data2] = await fs.readFileAsync(symlink, encoding);
+			const fh = await fs.open(symlink, 'w+');
+			await fh.write(content2);
+			await fh.close();
+			const data2 = await fs.readFile(symlink, encoding);
 			assert.strictEqual(data2, content2);
-			const [stat] = await fs.lstatAsync(symlink);
+			const stat = await fs.lstat(symlink);
 			assert.strictEqual(stat.isSymbolicLink(), true);
 		});
 	});
 
 	describe('write in a readonly file', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [fd] = await fs.openAsync('/1', 'r');
+			const fh = await fs.open('/1', 'r');
 			try {
-				await fs.writeAsync(fd, 'two');
+				await fh.write('two');
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.errno, 8);
 				assert.strictEqual(error.code, 'EBADF');
 			}
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
 	describe('read a writeonly file', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [fd] = await fs.openAsync('/1', 'w');
+			const fh = await fs.open('/1', 'w');
 			try {
-				await fs.readFileAsync(fd, 'utf8');
+				await fs.readFile(fh.fd, 'utf8');
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.errno, 8);
 				assert.strictEqual(error.code, 'EBADF');
 			}
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
 	describe('append mode', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [fd] = await fs.openAsync('/1', 'a+');
+			const fh = await fs.open('/1', 'a+');
 			const text = 'two\n';
-			const [bytesWritten, data] = await fs.writeAsync(fd, text);
+			const {bytesWritten, buffer:data} = await fh.write(text);
 			assert.strictEqual(bytesWritten, text.length);
 			assert.strictEqual(data, text);
 			const buffer = Buffer.alloc(16);
-			const [bytesRead, data2] = await fs.readAsync(fd, buffer, 0, buffer.length, 0);
+			const {bytesRead, buffer:data2} = await fh.read(buffer, 0, buffer.length, 0);
 			assert.strictEqual(bytesRead, 8);
 			const dataStr = data2.slice(0, bytesRead).toString();
 			assert.strictEqual(dataStr, 'one\ntwo\n');
-			await fs.closeAsync(fd);
+			const content = await fs.readFile('/1', 'utf8');
+			assert.strictEqual(content, 'one\ntwo\n');
+			await fh.close();
 		});
 	});
 
 	describe('readdir a folder that does not exist', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.readdirAsync('/no-such-folder');
+				await fs.readdir('/no-such-folder');
 				assert(false);
 			} catch(error) {
 				assert.strictEqual(error.errno, 44);
@@ -583,39 +588,50 @@ describe('ext2fs', () => {
 
 	describe('fchmod', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [fd] = await fs.openAsync('/1', 'r');
-			await fs.fchmodAsync(fd, 0o777);
-			const [stats] = await fs.fstatAsync(fd);
+			const fh = await fs.open('/1', 'r');
+			await fh.chmod(0o777);
+			const stats = await fh.stat();
 			assert.strictEqual(humanFileMode(fs, stats), '-rwxrwxrwx');
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
 	describe('fchmod 2', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [fd] = await fs.openAsync('/1', 'r');
-			await fs.fchmodAsync(fd, 0o137);
-			const [stats] = await fs.fstatAsync(fd);
+			const fh = await fs.open('/1', 'r');
+			await fh.chmod(0o137);
+			const stats = await fh.stat();
 			assert.strictEqual(humanFileMode(fs, stats), '---x-wxrwx');
-			await fs.closeAsync(fd);
+			await fh.close();
+		});
+	});
+
+	describe('lchmod', () => {
+		const target = '/usr/bin/chmod';
+		const linkpath = '/1.link';
+		testOnAllDisksMount(async (fs) => {
+			await fs.symlink(target, linkpath);
+			await fs.lchmod(linkpath, 0o137);
+			const lstats = await fs.lstat(linkpath);
+			assert.strictEqual(humanFileMode(fs, lstats), '---x-wxrwx');
 		});
 	});
 
 	describe('fchmod a folder', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [fd] = await fs.openAsync('/lost+found', 'r');
-			await fs.fchmodAsync(fd, 0o137);
-			const [stats] = await fs.fstatAsync(fd);
+			const fh = await fs.open('/lost+found', 'r');
+			await fh.chmod(0o137);
+			const stats = await fh.stat();
 			assert.strictEqual(humanFileMode(fs, stats), 'd--x-wxrwx');
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
 	describe('chmod', () => {
 		testOnAllDisksMount(async (fs) => {
 			const path = '/1';
-			await fs.chmodAsync(path, 0o777);
-			const [stats] = await fs.statAsync(path);
+			await fs.chmod(path, 0o777);
+			const stats = await fs.stat(path);
 			assert.strictEqual(humanFileMode(fs, stats), '-rwxrwxrwx');
 		});
 	});
@@ -623,8 +639,8 @@ describe('ext2fs', () => {
 	describe('chmod 2', () => {
 		testOnAllDisksMount(async (fs) => {
 			const path = '/1';
-			await fs.chmodAsync(path, 0o137);
-			const [stats] = await fs.statAsync(path);
+			await fs.chmod(path, 0o137);
+			const stats = await fs.stat(path);
 			assert.strictEqual(humanFileMode(fs, stats), '---x-wxrwx');
 		});
 	});
@@ -632,37 +648,50 @@ describe('ext2fs', () => {
 	describe('chmod a folder', () => {
 		testOnAllDisksMount(async (fs) => {
 			const path = '/lost+found';
-			await fs.chmodAsync(path, 0o137);
-			const [stats] = await fs.statAsync(path);
+			await fs.chmod(path, 0o137);
+			const stats = await fs.stat(path);
 			assert.strictEqual(humanFileMode(fs, stats), 'd--x-wxrwx');
 		});
 	});
 
 	describe('fchown', () => {
 		testOnAllDisksMount(async (fs) => {
-			const [fd] = await fs.openAsync('/1', 'r');
-			await fs.fchownAsync(fd, 2000, 3000);
-			const [stats] = await fs.fstatAsync(fd);
+			const fh = await fs.open('/1', 'r');
+			console.log({fh});
+			await fs.fchown(fh.fd, 2000, 3000);
+			const stats = await fs.fstat(fh.fd);
 			assert.strictEqual(stats.uid, 2000);
 			assert.strictEqual(stats.gid, 3000);
-			await fs.closeAsync(fd);
+			await fh.close();
 		});
 	});
 
 	describe('chown', () => {
 		testOnAllDisksMount(async (fs) => {
 			const path = '/1';
-			await fs.chownAsync(path, 2000, 3000);
-			const [stats] = await fs.statAsync(path);
+			await fs.chown(path, 2000, 3000);
+			const stats = await fs.stat(path);
 			assert.strictEqual(stats.uid, 2000);
 			assert.strictEqual(stats.gid, 3000);
+		});
+	});
+
+	describe('lchown', () => {
+		const target = '/1';
+		const linkpath = '/testlink';
+		testOnAllDisksMount(async (fs) => {
+			await fs.symlink(target, linkpath);
+			await fs.lchown(linkpath, 5000, 6000);
+			const stats = await fs.lstat(linkpath);
+			assert.strictEqual(stats.uid, 5000);
+			assert.strictEqual(stats.gid, 6000);
 		});
 	});
 
 	describe('O_EXCL', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.openAsync('/1', 'wx');
+				await fs.open('/1', 'wx');
 				assert(false);
 			} catch(err) {
 				assert.strictEqual(err.code, 'EEXIST');
@@ -674,7 +703,7 @@ describe('ext2fs', () => {
 	describe('O_DIRECTORY', () => {
 		testOnAllDisksMount(async (fs) => {
 			try {
-				await fs.openAsync('/1', fs.constants.O_DIRECTORY);
+				await fs.open('/1', fs.constants.O_DIRECTORY);
 				assert(false);
 			} catch(err) {
 				assert.strictEqual(err.code, 'ENOTDIR');
@@ -686,19 +715,19 @@ describe('ext2fs', () => {
 	describe('O_TRUNC', () => {
 		testOnAllDisksMount(async (fs) => {
 			const path = '/1';
-			const [fd] = await fs.openAsync(path, 'w');
-			await fs.closeAsync(fd);
-			const [content] = await fs.readFileAsync(path, 'utf8');
+			const fh = await fs.open(path, 'w');
+			await fh.close();
+			const content = await fs.readFile(path, 'utf8');
 			assert.strictEqual(content, '');
 		});
 	});
 
 	describe('close all fds on umount', () => {
 		testOnAllDisks(async (disk) => {
-			const fs = Bluebird.promisifyAll(await ext2fs.mount(disk), { multiArgs: true });
-			await fs.openAsync('/1', 'r');
-			await fs.openAsync('/2', 'r');
-			await fs.openAsync('/3', 'r');
+			const {promises:fs} = await ext2fs.mount(disk);
+			await fs.open('/1', 'r');
+			await fs.open('/2', 'r');
+			await fs.open('/3', 'r');
 			// this is the function called before umount
 			await fs.closeAllFileDescriptors();
 			assert.strictEqual(fs.openFiles.size, 0);
@@ -711,12 +740,12 @@ describe('ext2fs', () => {
 			const badFd = 9000;
 			const buf = Buffer.alloc(8);
 			let calls = [
-				fs.closeAsync(badFd),
-				fs.fchmodAsync(badFd, 0o777),
-				fs.fchownAsync(badFd, 2000, 3000),
-				fs.fstatAsync(badFd),
-				fs.readAsync(badFd, buf, 0, buf.length, 0),
-				fs.writeAsync(badFd, buf, 0, buf.length, 0)
+				fs.close(badFd),
+				fs.fchmod(badFd, 0o777),
+				fs.fchown(badFd, 2000, 3000),
+				fs.fstat(badFd),
+				fs.read(badFd, buf, 0, buf.length, 0),
+				fs.write(badFd, buf, 0, buf.length, 0)
 			];
 			calls = calls.map(async (p) => {
 				try {
@@ -735,7 +764,7 @@ describe('ext2fs', () => {
 		testOnAllDisksMount(async (fs) => {
 			const promises = [];
 			for (let i=0; i<20; i++) {
-				promises.push(fs.openAsync('/file_number_' + i, 'w'));
+				promises.push(fs.open('/file_number_' + i, 'w'));
 			}
 			await Promise.all(promises);
 		});
@@ -756,7 +785,7 @@ describe('ext2fs', () => {
 			const input = createReadableStreamFromString(newContent);
 			input.pipe(output);
 			await waitStream(output);
-			const [contents] = await fs.readFileAsync(path, 'utf8');
+			const contents = await fs.readFile(path, 'utf8');
 			assert.strictEqual(contents, newContent);
 		});
 	});
@@ -766,8 +795,8 @@ describe('ext2fs', () => {
 		const content = 'content\n';
 		const encoding = 'utf8';
 		testOnAllDisksMount(async (fs) => {
-			await fs.writeFileAsync(filename, content, encoding);
-			const [data] = await fs.readFileAsync(filename, encoding);
+			await fs.writeFile(filename, content, encoding);
+			const data = await fs.readFile(filename, encoding);
 			assert.strictEqual(data, content);
 		});
 	});
@@ -808,8 +837,8 @@ describe('ext2fs', () => {
 		const linkpath = '/testlink';
 
 		testOnAllDisksMount(async (fs) => {
-			await fs.symlinkAsync(target, linkpath);
-			const [targetActual] = await fs.readlinkAsync(linkpath);
+			await fs.symlink(target, linkpath);
+			const targetActual = await fs.readlink(linkpath);
 
 			assert.strictEqual(targetActual, target);
 		});
@@ -820,7 +849,7 @@ describe('ext2fs', () => {
 
 		testOnAllDisksMount(async (fs) => {
 			await assert.rejects(async() => {
-				await fs.readlinkAsync(filename);
+				await fs.readlink(filename);
 			}, (err) => {
 				return err.code === 'ENOENT';
 			});
@@ -831,13 +860,66 @@ describe('ext2fs', () => {
 		const filename = '/testlink';
 
 		testOnAllDisksMount(async (fs) => {
-			await fs.writeFileAsync(filename, 'Hello, World!');
+			await fs.writeFile(filename, 'Hello, World!');
 
 			await assert.rejects(async() => {
-				await fs.readlinkAsync(filename);
+				await fs.readlink(filename);
 			}, (err) => {
 				return err.code === 'EINVAL';
 			});
+		});
+	});
+
+	describe('rename', () => {
+		const oldName = '/1';
+		const newName = '/100';
+
+		testOnAllDisksMount(async (fs) => {
+			const oldStat = await fs.stat(oldName);
+			await fs.rename(oldName, newName);
+			try {
+				await fs.stat(oldName);
+			} catch (err) {
+				assert.strictEqual(err.code, 'ENOENT');
+			}
+			const newStat = await fs.stat(newName);
+			assert(oldStat.ino === newStat.ino);
+		});
+	});
+
+	describe('link', () => {
+		const src = '/1';
+		const dst = '/100';
+
+		testOnAllDisksMount(async (fs) => {
+			await fs.link(src, dst);
+			const srcStat = await fs.stat(src);
+			const dstStat = await fs.stat(dst);
+			assert(srcStat.ino === dstStat.ino);
+		});
+	});
+
+	describe('file-handle open, read, close', () => {
+		testOnAllDisksMount(async (fs) => {
+			const fh = await fs.open('/1', 'r');
+			const buf = Buffer.allocUnsafe(4);
+			const {bytesRead, buffer} = await fh.read(buf, 0, 4, 0);
+			assert.strictEqual(bytesRead, 4);
+			assert.strictEqual(buffer.toString(), 'one\n');
+			await fh.close();
+		});
+	});
+
+	describe('writing to closed file-handle', () => {
+		testOnAllDisksMount(async (fs) => {
+			const fh = await fs.open('/1', 'r');
+			await fh.close();
+			const str = 'hello, world';
+			try {
+				await fh.write(Buffer.from(str), 0, str.length);
+			} catch (err) {
+				assert.strictEqual(err.code, 'EBADF');
+			}
 		});
 	});
 });

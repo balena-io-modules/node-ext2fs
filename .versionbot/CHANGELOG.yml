@@ -1,4 +1,57 @@
 - commits:
+    - subject: Fix breaking change with promises
+      hash: 54dfc771023f22bcdde9962e73946bafcffd371f
+      body: >
+        The previous version introduced a breaking change, where ext2fs.mount
+        would return a tuple of [fs, fsPromises]. This undoes that change and
+        just returns fs, with the promises api as a property of fs, i.e.
+        fs.promises.
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Zane Hitchcox
+  version: 4.1.0
+  title: "'Backward compatible'"
+  date: 2022-07-18T16:54:24.657Z
+- commits:
+    - subject: support node 12
+      hash: 64007eacee103838fdc90b52886301cb6d55e228
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Zane Hitchcox
+  version: 4.0.1
+  title: "'support node 12'"
+  date: 2022-07-17T18:34:38.483Z
+- commits:
+    - subject: Add fsPromises to API
+      hash: d005486ac5a23fd32753ff7f78fc0cac6c846677
+      body: >
+        When mounting a disk with `withMountedDisk`, a second `fsPromises`
+        argument will be passed along with the normal `fs` argument. This object
+        follows the Node `fsPromises` API
+        (https://nodejs.org/api/fs.html#promises-api), just as the `fs` argument
+        follows the Node `fs` callback API.
+      footer:
+        Change-type: major
+        change-type: major
+      author: Zane Hitchcox
+  version: 4.0.0
+  title: "'Add Promise API and Refactor'"
+  date: 2022-07-17T01:14:02.169Z
+- commits:
+    - subject: add lstat support
+      hash: c61dc2811f3f5bc9b2998f45858a4218dc1b27c3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Zane Hitchcox
+  version: 3.1.1
+  title: "'Improve symlink support'"
+  date: 2022-07-07T20:31:54.840Z
+- commits:
     - subject: add symlink support
       hash: a7e33f0068966821626ee9e86924bbc32e0dd484
       body: ""

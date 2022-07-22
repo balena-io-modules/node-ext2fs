@@ -16,8 +16,7 @@ Some things you can do with this module:
 * Create a tar archive from a filesystem image
 * Perform a TRIM operation to obtain discard regions of a filesystem
 
-Installation
-------------
+## Installation
 
 Simply install `node-ext2fs` using `npm`:
 
@@ -25,20 +24,8 @@ Simply install `node-ext2fs` using `npm`:
 $ npm install node-ext2fs
 ```
 
-Building
---------
 
-To build `node-ext2fs` you need to have `make` and `emcc` from emscripten >= 2.0.7 available on your
-environment.
-
-Build `node-ext2fs` using `npm`:
-
-``` bash
-$ npm run build
-```
-
-Usage
------
+## Usage
 
 Mount a disk image and use the returned `fs` object.
 The fs returned object behaves like node's `fs` except it doesn't provide any
@@ -47,45 +34,78 @@ You can also issue `DISCARD` requests using the fs `async trim()` method.
 
 See the example below.
 
-Example
--------
+## Example
 
 ```javascript
 const { withMountedDisk } = require('ext2fs');
 const { FileDisk, withOpenFile } = require('file-disk');
-const { promisify } = require('util');
 
 async function main() {
-	const diskImage = '/some/disk.image';
-	const offset = 272629760;  // offset of the ext partition you want to mount in that disk image
-        try {
-                await withOpenFile(diskImage, 'r', async (handle) => {
-                        const disk = new FileDisk(handle);
-                        await withMountedDisk(disk, offset, async (fs) => {
-                                const readdir = promisify(fs.readdir);
-				// List files
-                                console.log('readdir', await readdir('/'));
-                                await fs.trim();
-				// Show discarded regions
-                                console.log('discarded', disk.getDiscardedChunks());
-				// Show ranges of useful data aligned to 1MiB
-                                console.log('ranges', await disk.getRanges(1024 ** 2));
-                        });
-                });
-        } catch (error) {
-                console.error(error);
-        }
+  const diskImage = '/some/disk.image';
+  const offset = 272629760;  // offset of the ext partition you want to mount in that disk image
+  try {
+    await withOpenFile(diskImage, 'r', async (handle) => {
+      const disk = new FileDisk(handle);
+      await withMountedDisk(disk, offset, async ({promises:fs}) => {
+        // List files
+        console.log('readdir', await fs.readdir('/'));
+        await fs.trim();
+        // Show discarded regions
+        console.log('discarded', disk.getDiscardedChunks());
+        // Show ranges of useful data aligned to 1MiB
+        console.log('ranges', await disk.getRanges(1024 ** 2));
+      });
+    });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 ```
+## Building
 
-Support
--------
+- Prerequisites
+  * git
+  * make
+  * NodeJS >=v12
+
+
+- Install emscripten
+```
+# Get the emsdk repo
+git clone https://github.com/emscripten-core/emsdk.git
+
+# Enter that directory
+cd emsdk
+
+# Download and install the latest SDK tools.
+./emsdk install latest
+
+# Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+./emsdk activate latest
+
+# Activate PATH and other environment variables in the current terminal
+source ./emsdk_env.sh
+```
+
+- Clone recursively
+```
+# You must clone recursively in order to get the dependency
+git clone --recursive https://github.com/balena-io-modules/node-ext2fs
+```
+
+- Build
+```
+cd node-ext2fs
+npm i
+npm run build
+```
+
+## Support
 
 If you're having any problems, please [raise an issue][github-issue] on GitHub.
 
-License
--------
+## License
 
 node-ext2fs is free software, and may be redistributed under the terms specified
 in the [license].
