@@ -1,4 +1,15 @@
 - commits:
+    - subject: Add missing condition
+      hash: e6a0e75276f382704da2c3b8a58bd6a4a84571ee
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: ab77
+  version: 4.1.4
+  title: ""
+  date: 2022-12-28T20:44:10.434Z
+- commits:
     - subject: change functions to use async directly instead of asyncify
       hash: 098f767f306e544bb2da92880077b539288b7b74
       body: ""
