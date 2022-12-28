@@ -15,6 +15,7 @@
     "lib/**/*.wasm"
   ],
   "scripts": {
+    "flowzone-preinstall": "sudo apt-get install -y emscripten",
     "build": "make -j $(nproc)",
     "prepare": "npm run build",
     "pretest": "eslint --fix lib test src/pre.js",
