@@ -1,4 +1,18 @@
 - commits:
+    - subject: Update dependency mocha to 10.2.0
+      hash: 1f29ba37e1aeb9b4ebd918f40dcabc5a1e74ca76
+      body: |
+        Update mocha to 10.2.0
+
+        Update mocha from 8.4.0 to 10.2.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Renovate Bot
+  version: 4.1.6
+  title: ""
+  date: 2022-12-28T22:09:03.176Z
+- commits:
     - subject: Update dependency eslint to 8.30.0
       hash: fcb776f2d8119d76cca8ffbbf84ccf113c3074e9
       body: |
