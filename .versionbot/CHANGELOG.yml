@@ -1,4 +1,15 @@
 - commits:
+    - subject: change functions to use async directly instead of asyncify
+      hash: 098f767f306e544bb2da92880077b539288b7b74
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Zane Hitchcox
+  version: 4.1.3
+  title: ""
+  date: 2022-12-28T20:34:58.952Z
+- commits:
     - subject: switch to flowzone
       hash: 4f037153feaafa5a5cc281fc333d470c0d8ca5f8
       body: ""
