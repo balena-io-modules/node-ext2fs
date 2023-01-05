@@ -1,4 +1,18 @@
 - commits:
+    - subject: Update deps/e2fsprogs digest to aad3490
+      hash: b8ac83acef12b514c8f5d29328ce0e38e62b8c26
+      body: |
+        Update deps/e2fsprogs to
+
+        Update deps/e2fsprogs from  to
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Renovate Bot
+  version: 4.2.0
+  title: ""
+  date: 2023-01-05T22:48:47.564Z
+- commits:
     - subject: Generate version
       hash: ebb275b0f548905a5ab9f53b9b5363e060b857f4
       body: ""
