@@ -46,7 +46,7 @@
     "url": "https://github.com/balena-io/node-ext2fs/issues"
   },
   "engines": {
-    "node": "16"
+    "node": "18"
   },
   "versionist": {
     "publishedAt": "2023-01-05T22:13:55.835Z"
