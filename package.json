@@ -1,6 +1,6 @@
 {
   "name": "ext2fs",
-  "version": "4.1.6",
+  "version": "4.1.7",
   "description": "WASM bindings to libext2fs for cross-platform ext filesystem handling",
   "author": "Petros Angelatos <petrosagg@balena.io>",
   "contributors": [
@@ -49,6 +49,6 @@
     "node": "16"
   },
   "versionist": {
-    "publishedAt": "2022-12-28T22:09:03.361Z"
+    "publishedAt": "2023-01-05T22:13:55.835Z"
   }
 }

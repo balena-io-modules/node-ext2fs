@@ -1,4 +1,22 @@
 - commits:
+    - subject: Generate version
+      hash: ebb275b0f548905a5ab9f53b9b5363e060b857f4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: ab77
+    - subject: Update dependencies
+      hash: 356e9909b16aa6dbcab0dc194bc33a5cf47d8368
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: ab77
+  version: 4.1.7
+  title: ""
+  date: 2023-01-05T22:13:55.581Z
+- commits:
     - subject: Update dependency mocha to 10.2.0
       hash: 1f29ba37e1aeb9b4ebd918f40dcabc5a1e74ca76
       body: |
