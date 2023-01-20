@@ -25,14 +25,15 @@ $ npm install ext2fs
 
 ## Development
 
-The project currently only builds on Linux. The built module however is cross-platform.
-You will specifically need a Debian-like distro (due to automatic install of emscripten
-via apt-get. PRs are welcome to widen support).
+Just run:
 
 ```
 $ cd ./node-ext2fs
 $ npm install
 ```
+
+If installation fails due to missing executables, see `./install-toolchain.sh`
+for help on installing the toolchain.
 
 
 ## Usage

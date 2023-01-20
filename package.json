@@ -11,8 +11,9 @@
     "lib/**/*.wasm"
   ],
   "scripts": {
-    "preinstall": "sudo apt-get install -y emscripten",
-    "build": "make -j $(nproc)",
+    "preinstall": "./install-toolchain.sh",
+    "clean": "make clean && rm -rf ./emsdk",
+    "build": "bash -c 'source ./emsdk/emsdk_env.sh && make -j $(nproc)'",
     "prepare": "npm run build",
     "pretest": "eslint --fix lib test src/pre.js",
     "test": "mocha"
