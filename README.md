@@ -3,10 +3,8 @@ node-ext2fs
 ### WASM bindings to the linux ext{2,3,4} filesystem library
 
 node-ext2fs uses the [e2fsprogs](https://github.com/tytso/e2fsprogs) project to
-provide access to ext filesystem from javascript.
-
-The `node-` in `node-ext2fs` is here because it was a native node module until `v3.0.0` (excluded).
-Since `v3.0.0`, it is a WebAssembly module built with [emscripten](https://emscripten.org/).
+provide access to ext filesystem from javascript. It is a WebAssembly module built
+with [emscripten](https://emscripten.org/).
 
 Some things you can do with this module:
 
@@ -21,8 +19,21 @@ Some things you can do with this module:
 Simply install `node-ext2fs` using `npm`:
 
 ``` bash
-$ npm install node-ext2fs
+$ npm install ext2fs
 ```
+
+
+## Development
+
+Just run:
+
+```
+$ cd ./node-ext2fs
+$ npm install
+```
+
+If installation fails due to missing executables, see `./install-toolchain.sh`
+for help on installing the toolchain.
 
 
 ## Usage
