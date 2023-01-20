@@ -14,6 +14,7 @@ TOOLCHAIN_VERSION=3.1.5
 #
 # https://emscripten.org/docs/getting_started/downloads.html#installation-instructions-using-the-emsdk-recommended
 
+rm -rf ./emsdk || true
 git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
 
