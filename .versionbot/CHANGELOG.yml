@@ -1,4 +1,15 @@
 - commits:
+    - subject: Fix packaging
+      hash: b3a66b86840dbf0a81a0430b827941cc2cd72639
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Akis Kesoglou
+  version: 4.2.1
+  title: ""
+  date: 2023-01-20T14:15:50.224Z
+- commits:
     - subject: Pin emscripten toolchain version
       hash: 61d15d710366835e24565ff9957523043db49d7e
       body: ""
