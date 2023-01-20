@@ -1,4 +1,22 @@
 - commits:
+    - subject: Pin emscripten toolchain version
+      hash: 61d15d710366835e24565ff9957523043db49d7e
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Akis Kesoglou
+    - subject: Add support for Node 18
+      hash: 83fbf5165f0a743a23e47e72f5e55afd9f43a560
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Akis Kesoglou
+  version: 4.2.0
+  title: ""
+  date: 2023-01-20T13:49:00.220Z
+- commits:
     - subject: Generate version
       hash: ebb275b0f548905a5ab9f53b9b5363e060b857f4
       body: ""
