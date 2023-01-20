@@ -24,6 +24,7 @@ JSFLAGS = \
 	-s ASYNCIFY_IMPORTS="['blk_read', 'blk_write', 'discard', 'flush']" \
 	-s EXPORTED_FUNCTIONS="['_malloc_from_js', '_free_from_js', '_node_ext2fs_mount', '_node_ext2fs_trim', '_node_ext2fs_readdir', '_node_ext2fs_open', '_node_ext2fs_read', '_node_ext2fs_write', '_node_ext2fs_unlink', '_node_ext2fs_rename', '_node_ext2fs_link', '_node_ext2fs_rmdir', '_node_ext2fs_chmod', '_node_ext2fs_chown', '_node_ext2fs_mkdir', '_node_ext2fs_readlink', '_node_ext2fs_symlink', '_node_ext2fs_close', '_node_ext2fs_umount', '_node_ext2fs_stat_i_mode', '_node_ext2fs_stat_i_links_count', '_node_ext2fs_stat_i_uid', '_node_ext2fs_stat_i_gid', '_node_ext2fs_stat_blocksize', '_node_ext2fs_stat_ino', '_node_ext2fs_stat_i_size', '_node_ext2fs_stat_i_blocks', '_node_ext2fs_stat_i_atime', '_node_ext2fs_stat_i_mtime', '_node_ext2fs_stat_i_ctime']" \
 	-s EXPORTED_RUNTIME_METHODS="['ccall']" \
+	-s SINGLE_FILE \
 	--pre-js $(prejs)
 
 OBJS= \
@@ -119,4 +120,4 @@ lib/libext2fs.js: $(OBJS) $(glue).o $(prejs)
 	npx prettier --write ./lib/libext2fs.js
 
 clean:
-	rm -f $(OBJS) $(glue).o lib/libext2fs.js lib/libext2fs.wasm
+	rm -f $(OBJS) $(glue).o lib/libext2fs.js
