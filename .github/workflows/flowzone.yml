@@ -1,6 +1,5 @@
 ---
 name: Flowzone
-
 on:
   pull_request:
     types: [opened, synchronize, closed]
@@ -8,7 +7,6 @@ on:
   pull_request_target:
     types: [opened, synchronize, closed]
     branches: [main, master]
-
 jobs:
   flowzone:
     name: Flowzone
@@ -17,6 +15,4 @@ jobs:
       (github.event.pull_request.head.repo.full_name != github.repository && github.event_name == 'pull_request_target')
     uses: product-os/flowzone/.github/workflows/flowzone.yml@master
     secrets: inherit
-    with:
-      repo_config: true
-      repo_description: "NodeJS native bindings to the libext2fs for cross-platform ext{2,3,4} filesystem handling."
+    with: {}
