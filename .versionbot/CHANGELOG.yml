@@ -1,4 +1,20 @@
 - commits:
+    - subject: Remove repo config from flowzone.yml
+      hash: 51e3de3486f529f0de413da56aca83b8db25c032
+      body: |
+        This functionality is being deprecated in Flowzone.
+
+        See: https://github.com/product-os/flowzone/pull/833
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+  version: 4.2.3
+  title: ""
+  date: 2023-12-19T21:59:31.116Z
+- commits:
     - subject: Update dependency prettier to v3
       hash: beed62e3ef5a43d15f98d5468c9aed9256fe3ff5
       body: |
