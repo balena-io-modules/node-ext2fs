@@ -1,4 +1,21 @@
 - commits:
+    - subject: Fix fs.stat for large file sizes
+      hash: e83874d1cbeedb3047cbcb8952878a65c9c972eb
+      body: >
+        The the size of an image was > ~4GB (max value that could be stored in a
+        32-bit integer the stat function threw an error - there was a type
+        mismatch between node and the c function that combined the upper and
+        lower 32 bits of the image size that is stored in the inode.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ryan Cooke<ryan@balena.io>
+        signed-off-by: Ryan Cooke<ryan@balena.io>
+      author: Ryan Cooke
+  version: 4.2.4
+  title: ""
+  date: 2025-02-20T17:53:02.994Z
+- commits:
     - subject: Remove repo config from flowzone.yml
       hash: 51e3de3486f529f0de413da56aca83b8db25c032
       body: |
@@ -458,11 +475,14 @@
 
         In file included from ../src/node_ext2fs.cc:2:0:
 
-        ../../nan/nan.h: In constructor 'Nan::Utf8String::Utf8String(v8::Local<v8::Value>)':
+        ../../nan/nan.h: In constructor
+        'Nan::Utf8String::Utf8String(v8::Local<v8::Value>)':
 
-        ../../nan/nan.h:1081:101: error: no matching function for call to 'v8::String::WriteUtf8(v8::Isolate*, char*&, int, int, const int&)'
+        ../../nan/nan.h:1081:101: error: no matching function for call to
+        'v8::String::WriteUtf8(v8::Isolate*, char*&, int, int, const int&)'
 
-        length_ = string->WriteUtf8(v8::Isolate::GetCurrent(), str_, static_cast<int>(len), 0, flags);
+        length_ = string->WriteUtf8(v8::Isolate::GetCurrent(), str_,
+        static_cast<int>(len), 0, flags);
 
         ^
 
@@ -472,7 +492,8 @@
 
         from ../src/node_ext2fs.cc:2:
 
-        /root/.node-gyp/10.4.0/include/node/v8.h:2616:7: note: candidate: int v8::String::WriteUtf8(char*, int, int*, int) const
+        /root/.node-gyp/10.4.0/include/node/v8.h:2616:7: note: candidate: int
+        v8::String::WriteUtf8(char*, int, int*, int) const
 
         ```
 - version: 1.0.23
