@@ -283,8 +283,8 @@ errcode_t update_xtime(ext2_file_t file, bool a, bool c, bool m) {
 	return err;
 }
 
-unsigned long getUInt64Number(unsigned long long hi, unsigned long long lo) {
-	return lo | (hi << 32);
+double getUInt64Number(unsigned long long hi, unsigned long long lo) {
+	return (double) ((hi << 32) | lo);
 }
 // ------------------------
 
@@ -1377,7 +1377,7 @@ int node_ext2fs_stat_blocksize(ext2_file_t file) {
 	return file->fs->blocksize;
 }
 
-unsigned long node_ext2fs_stat_i_size(ext2_file_t file) {
+double node_ext2fs_stat_i_size(ext2_file_t file) {
 	return getUInt64Number(file->inode.i_size_high, file->inode.i_size);
 }
 
