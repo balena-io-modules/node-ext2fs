@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update dependency mocha to v11
+      hash: 3318a93c4cbc8411cad60bb2af15ba30c17aa11a
+      body: |
+        Update mocha from 10.8.2 to 11.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+  version: 4.2.5
+  title: ""
+  date: 2025-03-25T16:33:29.690Z
+- commits:
     - subject: Fix fs.stat for large file sizes
       hash: e83874d1cbeedb3047cbcb8952878a65c9c972eb
       body: >
