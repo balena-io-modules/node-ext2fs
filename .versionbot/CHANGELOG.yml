@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update deps/e2fsprogs digest to 4b02eb1
+      hash: 645423e61716acb0226f35ca364074fb5ba22967
+      body: |
+        Update deps/e2fsprogs
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+  version: 4.2.6
+  title: ""
+  date: 2025-08-21T16:32:28.078Z
+- commits:
     - subject: Update dependency mocha to v11
       hash: 3318a93c4cbc8411cad60bb2af15ba30c17aa11a
       body: |
