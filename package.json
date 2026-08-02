@@ -18,11 +18,11 @@
     "test": "mocha"
   },
   "devDependencies": {
-    "bluebird": "^3.7.2",
-    "eslint": "^8.31.0",
-    "file-disk": "^8.0.0",
-    "mocha": "^11.0.0",
-    "prettier": "^3.0.0"
+    "bluebird": "3.7.2",
+    "eslint": "8.57.1",
+    "file-disk": "8.0.1",
+    "mocha": "11.8.0",
+    "prettier": "3.9.6"
   },
   "homepage": "https://github.com/balena-io/node-ext2fs#readme",
   "repository": {
